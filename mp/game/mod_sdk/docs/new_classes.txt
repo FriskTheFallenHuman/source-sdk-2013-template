@@ -1,0 +1,25 @@
+Player Classes
+--------------
+
+Creating a new playerclass within the SDK Template is Very easy, and involves 6 steps!
+
+Step 1: Open sdk_shareddefs.h and sdk_shareddefs.cpp
+	(.h) increment the define SDK_NUM_PLAYERCLASSES to reflect the new count of player classes you will have
+
+	(.cpp) modify pszPossiblePlayerModels, and add any player models you'll be using.
+
+	if You're using teams; 
+	(.cpp) modify both pszTeamBlueClasses, and pszRedBlueClasses to add your new player class.
+	if you're not using teams:
+	(.cpp) modify pszPlayerClasses and add your new player class.
+
+
+Step 2: create a new playerclass script for your new class. If you're using teams, you'll need a playerclass_blue_classX.txt file and a playerclass_red_classX.txt file, if you're not you only need a new playerclass_pc_classX.txt
+Step 3: create new .res file's for your new classes inside the "classes" folder - This is for the player class screen, where it shows the information for the class.
+Step 4: modify resource\ui\classmenu_XXX.res to add new buttons to select your new classes.
+Step 5: modify your language.txt file to add any new localization strings (ie: descriptions) you're using.
+Step 6: Compile your mod, load it up, and if everything was successful you should have a new class to choose!
+
+r.cpp to your new weapon.
+
+Have fun!

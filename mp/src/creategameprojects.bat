@@ -1,1 +1,4 @@
-devtools\bin\vpc.exe /hl2mp +game /mksln games.sln
+@echo off
+cls
+	devtools\bin\vpc.exe /sdk +game /mksln game_scratch.sln
+@pause

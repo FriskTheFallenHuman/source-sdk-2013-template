@@ -1,1 +1,4 @@
-devtools\bin\vpc.exe /hl2mp +everything /mksln everything.sln
+@echo off
+cls
+	devtools\bin\vpc.exe /sdk +everything /mksln everything_sdk.sln
+@pause

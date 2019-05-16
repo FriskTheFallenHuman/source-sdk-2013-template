@@ -1,0 +1,19 @@
+Weapon Template
+---------------
+
+Creating a new weapon within the SDK Template is Very easy, and involves 5 steps!
+
+Step 1: Open sdk_shareddefs.h and sdk_shareddefs.cpp
+	(.h) Add a new weapon id to the enum ie: SDK_WEAPON_BANANAGUN
+	(.cpp) Add the new weapon to s_WeaponAliasInfo, ie: "bananagun"
+
+Step 2: Create a new file inside the shared\sdk folder for your weapon. (you can simply copy and paste weapon_mp5.cpp to for example weapon_bananagun.cpp) - ensure it is added to both the client and server projects.
+Step 3: Inside this new file, change all instances of 'mp5' to 'bananagun'
+Step 4: copy scripts\weapon_mp5.txt to scripts\weapon_bananagun.txt - open this file and edit it's options.
+
+Step 5: Compile your mod, load it up with cheats on and type 'give weapon_bananagun' into the console.
+
+
+If you wish to make a melee weapon, the process is exactly the same except duplicate shared\sdk\weapon_crowbar.cpp to your new weapon.
+
+Have fun!

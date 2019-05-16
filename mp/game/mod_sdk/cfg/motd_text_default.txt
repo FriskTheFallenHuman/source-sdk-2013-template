@@ -1,0 +1,18 @@
+SDK Sample App MOTD
+
+Welcome to the SDK Template!<br>
+
+For Programmers:
+Check out "sdk_shareddefs.h" Inside this header, you will find a number of defines which activate functionality. By default, all of these defines are commented out.
+
+Features present in this template are:
+ * Team System, complete with a team selection menu.<br>
+ * Player Class System, based heavily on proven Day of Defeat: Source, and Team Fortress 2 code.
+ - Simply define the classes in "sdk_shareddefs.cpp" and edit existing or create new script files in the scripts folder.
+ * Prone and Sprinting functionality<br>
+ * Updated scoreboard functionality for teams and including Orange Box's new community avatar support
+ * and more!
+
+For Artists:
+ * There is new model sources for the player included in this sample.<br>
+ * The sources for the sample map "sdk_teams_hdr" is also included; most tonemap controller inputs now function in multiplayer!<br>
