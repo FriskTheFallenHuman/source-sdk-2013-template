@@ -78,8 +78,6 @@ public:
 	CNetworkQAngle( m_angEyeAngles );	// Copied from EyeAngles() so we can send it to the client.
 	CNetworkVar( int, m_iShotsFired );	// number of shots fired recently
 
-	// Tracks our ragdoll entity.
-	CNetworkHandle( CBaseEntity, m_hRagdoll );	// networked entity handle 
 #if defined ( SDK_USE_PLAYERCLASSES )
 	int GetPlayerClassAsString( char *pDest, int iDestSize );
 	void SetClassMenuOpen( bool bIsOpen );
@@ -116,6 +114,14 @@ public:
 	void DecreaseShotsFired() { m_iShotsFired--; if (m_iShotsFired < 0) m_iShotsFired = 0; }
 	void ClearShotsFired() { m_iShotsFired = 0; }
 	int GetShotsFired() { return m_iShotsFired; }
+
+	// Ragdolls.
+	virtual bool BecomeRagdoll( const CTakeDamageInfo &info, const Vector &forceVector );
+	virtual void CreateRagdollEntity( void );
+	void CreateRagdollEntity( bool bOnGround, int iDamageCustom );
+	void DestroyRagdoll( void );
+	CNetworkHandle( CBaseEntity, m_hRagdoll );	// networked entity handle 
+	Vector m_vecTotalBulletForce;
 
 #if defined ( SDK_USE_SPRINTING )
 	void SetSprinting( bool bIsSprinting );
@@ -223,10 +229,6 @@ private:
 	// This is the current camera, and the time that we'll switch to the next one.
 	EHANDLE m_pIntroCamera;
 	float m_fIntroCamTime;
-
-	void CreateRagdollEntity();
-	void DestroyRagdoll( void );
-
 
 	CSDKPlayerAnimState *m_PlayerAnimState;
 

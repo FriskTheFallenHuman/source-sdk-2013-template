@@ -168,41 +168,51 @@ IMPLEMENT_SERVERCLASS_ST( CSDKPlayer, DT_SDKPlayer )
 
 END_SEND_TABLE()
 
+//=================================================================================
+//
+// Ragdoll Entity
+//
+//=================================================================================
 class CSDKRagdoll : public CBaseAnimatingOverlay
 {
 public:
+
 	DECLARE_CLASS( CSDKRagdoll, CBaseAnimatingOverlay );
 	DECLARE_SERVERCLASS();
 
-	// Transmit ragdolls to everyone.
-	virtual int UpdateTransmitState()
+	CSDKRagdoll()
 	{
-		return SetTransmitState( FL_EDICT_ALWAYS );
+		m_iPlayerIndex.Set( SDK_PLAYER_INDEX_NONE );
+		m_bOnGround = false;
+		m_iDamageCustom = 0;
+		m_vecRagdollOrigin.Init();
+		m_vecRagdollVelocity.Init();
+		UseClientSideAnimation();
 	}
 
-public:
-	// In case the client has the player entity, we transmit the player index.
-	// In case the client doesn't have it, we transmit the player's model index, origin, and angles
-	// so they can create a ragdoll in the right place.
-	CNetworkHandle( CBaseEntity, m_hPlayer );	// networked entity handle 
+	// Transmit ragdolls to everyone.
+	virtual int UpdateTransmitState() {	return SetTransmitState( FL_EDICT_ALWAYS );	}
+
+	CNetworkVar( int, m_iPlayerIndex );
 	CNetworkVector( m_vecRagdollVelocity );
 	CNetworkVector( m_vecRagdollOrigin );
+	CNetworkVar( bool, m_bOnGround );
+	CNetworkVar( int, m_iDamageCustom );
 };
 
 LINK_ENTITY_TO_CLASS( sdk_ragdoll, CSDKRagdoll );
 
 IMPLEMENT_SERVERCLASS_ST_NOBASE( CSDKRagdoll, DT_SDKRagdoll )
-	SendPropVector( SENDINFO(m_vecRagdollOrigin), -1,  SPROP_COORD ),
-	SendPropEHandle( SENDINFO( m_hPlayer ) ),
-	SendPropModelIndex( SENDINFO( m_nModelIndex ) ),
-	SendPropInt		( SENDINFO(m_nForceBone), 8, 0 ),
-	SendPropVector	( SENDINFO(m_vecForce), -1, SPROP_NOSCALE ),
-	SendPropVector( SENDINFO( m_vecRagdollVelocity ) )
+	SendPropVector( SENDINFO( m_vecRagdollOrigin ), -1, SPROP_COORD ),
+	SendPropInt( SENDINFO( m_iPlayerIndex ), 7, SPROP_UNSIGNED ),
+	SendPropVector( SENDINFO( m_vecForce ), -1, SPROP_NOSCALE ),
+	SendPropVector( SENDINFO( m_vecRagdollVelocity ), 13, SPROP_ROUNDDOWN, -2048.0f, 2048.0f ),
+	SendPropInt( SENDINFO( m_nForceBone ) ),
+	SendPropBool( SENDINFO( m_bOnGround ) ),
+	SendPropInt( SENDINFO( m_iDamageCustom ) ),
 END_SEND_TABLE()
 
-
 // -------------------------------------------------------------------------------- //
-
 void cc_CreatePredictionError_f()
 {
 	CBaseEntity *pEnt = CBaseEntity::Instance( 1 );
@@ -278,9 +288,11 @@ void CSDKPlayer::PreThink(void)
 		return;
 	}
 
+	// Reset bullet force accumulator, only lasts one frame, for ragdoll forces from multiple shots.
+	m_vecTotalBulletForce = vec3_origin;
+
 	BaseClass::PreThink();
 }
-
 
 void CSDKPlayer::PostThink()
 {
@@ -296,10 +308,8 @@ void CSDKPlayer::PostThink()
     m_PlayerAnimState->Update( m_angEyeAngles[YAW], m_angEyeAngles[PITCH] );
 }
 
-
 void CSDKPlayer::Precache()
 {
-
 	//Tony; go through our list of player models that we may be using and cache them
 	int i = 0;
 	while( pszPossiblePlayerModels[i] != NULL )
@@ -574,6 +584,16 @@ void CSDKPlayer::TraceAttack( const CTakeDamageInfo &inputInfo, const Vector &ve
 {
 	//Tony; disable prediction filtering, and call the baseclass.
 	CDisablePredictionFiltering disabler;
+
+	// Save this bone for the ragdoll.
+	m_nForceBone = ptr->physicsbone;
+
+	// Save damage force for ragdolls.
+	m_vecTotalBulletForce = inputInfo.GetDamageForce();
+	m_vecTotalBulletForce.x = clamp( m_vecTotalBulletForce.x, -15000.0f, 15000.0f );
+	m_vecTotalBulletForce.y = clamp( m_vecTotalBulletForce.y, -15000.0f, 15000.0f );
+	m_vecTotalBulletForce.z = clamp( m_vecTotalBulletForce.z, -15000.0f, 15000.0f );
+
 	BaseClass::TraceAttack( inputInfo, vecDir, ptr, pAccumulator );
 }
 
@@ -751,6 +771,8 @@ int CSDKPlayer::OnTakeDamage_Alive( const CTakeDamageInfo &info )
 
 void CSDKPlayer::Event_Killed( const CTakeDamageInfo &info )
 {
+	bool bOnGround = ( GetFlags() & FL_ONGROUND ) != 0;
+
 	ThrowActiveWeapon();
 
 	// show killer in death cam mode
@@ -768,7 +790,7 @@ void CSDKPlayer::Event_Killed( const CTakeDamageInfo &info )
 
 	// Note: since we're dead, it won't draw us on the client, but we don't set EF_NODRAW
 	// because we still want to transmit to the clients in our PVS.
-	CreateRagdollEntity();
+	CreateRagdollEntity(  bOnGround, info.GetDamageCustom() );
 
 	State_Transition( STATE_DEATH_ANIM );	// Transition into the dying state.
 
@@ -778,6 +800,44 @@ void CSDKPlayer::Event_Killed( const CTakeDamageInfo &info )
 	BaseClass::Event_Killed( info );
 
 }
+
+//-----------------------------------------------------------------------------
+// Purpose: 
+//-----------------------------------------------------------------------------
+bool CSDKPlayer::BecomeRagdoll( const CTakeDamageInfo &info, const Vector &forceVector )
+{
+	if ( CanBecomeRagdoll() )
+	{
+		VPhysicsDestroyObject();
+		AddSolidFlags( FSOLID_NOT_SOLID );
+		m_nRenderFX = kRenderFxRagdoll;
+
+		// Have to do this dance because m_vecForce is a network vector
+		// and can't be sent to ClampRagdollForce as a Vector *
+		Vector vecClampedForce;
+		ClampRagdollForce( forceVector, &vecClampedForce );
+		m_vecForce = vecClampedForce;
+
+		SetParent( NULL );
+
+		AddFlag( FL_TRANSRAGDOLL );
+
+		SetMoveType( MOVETYPE_NONE );
+
+		return true;
+	}
+
+	return false;
+}
+
+//-----------------------------------------------------------------------------
+// Purpose:
+//-----------------------------------------------------------------------------
+void CSDKPlayer::CreateRagdollEntity( void )
+{
+	CreateRagdollEntity( false, 0 );
+}
+
 void CSDKPlayer::ThrowActiveWeapon( void )
 {
 	CWeaponSDKBase *pWeapon = (CWeaponSDKBase *)GetActiveWeapon();
@@ -797,12 +857,14 @@ void CSDKPlayer::ThrowActiveWeapon( void )
 		SDKThrowWeapon( pWeapon, vecForward, gunAngles, flDiameter );
 	}
 }
+
 void CSDKPlayer::Weapon_Equip( CBaseCombatWeapon *pWeapon )
 {
 	BaseClass::Weapon_Equip( pWeapon );
 	dynamic_cast<CWeaponSDKBase*>(pWeapon)->SetDieThink( false );	//Make sure the context think for removing is gone!!
 
 }
+
 void CSDKPlayer::SDKThrowWeapon( CWeaponSDKBase *pWeapon, const Vector &vecForward, const QAngle &vecAngles, float flDiameter  )
 {
 	Vector vecOrigin;
@@ -852,11 +914,14 @@ void CSDKPlayer::PlayerDeathThink()
 {
 	//overridden, do nothing - our states handle this now
 }
-void CSDKPlayer::CreateRagdollEntity()
-{
-	// If we already have a ragdoll, don't make another one.
-	CSDKRagdoll *pRagdoll = dynamic_cast< CSDKRagdoll* >( m_hRagdoll.Get() );
 
+//-----------------------------------------------------------------------------
+// Purpose: Create a ragdoll entity to pass to the client.
+//-----------------------------------------------------------------------------
+void CSDKPlayer::CreateRagdollEntity( bool bOnGround, int iDamageCustom )
+{
+	// If we already have a ragdoll destroy it.
+	CSDKRagdoll *pRagdoll = dynamic_cast<CSDKRagdoll*>( m_hRagdoll.Get() );
 	if( pRagdoll )
 	{
 		UTIL_Remove( pRagdoll );
@@ -864,25 +929,29 @@ void CSDKPlayer::CreateRagdollEntity()
 	}
 	Assert( pRagdoll == NULL );
 
-	if ( !pRagdoll )
-	{
-		// create a new one
-		pRagdoll = dynamic_cast< CSDKRagdoll* >( CreateEntityByName( "sdk_ragdoll" ) );
-	}
-
+	// Create a ragdoll.
+	pRagdoll = dynamic_cast<CSDKRagdoll*>( CreateEntityByName( "sdk_ragdoll" ) );
 	if ( pRagdoll )
 	{
-		pRagdoll->m_hPlayer = this;
 		pRagdoll->m_vecRagdollOrigin = GetAbsOrigin();
 		pRagdoll->m_vecRagdollVelocity = GetAbsVelocity();
-		pRagdoll->m_nModelIndex = m_nModelIndex;
+		pRagdoll->m_vecForce = m_vecTotalBulletForce;
 		pRagdoll->m_nForceBone = m_nForceBone;
-		pRagdoll->m_vecForce = Vector(0,0,0);
+		Assert( entindex() >= 1 && entindex() <= MAX_PLAYERS );
+		pRagdoll->m_iPlayerIndex.Set( entindex() );
+		pRagdoll->m_bOnGround = bOnGround;
+		pRagdoll->m_iDamageCustom = iDamageCustom;
 	}
 
-	// ragdolls will be removed on round restart automatically
+	// Turn off the player.PreThink
+	AddSolidFlags( FSOLID_NOT_SOLID );
+	AddEffects( EF_NODRAW | EF_NOSHADOW );
+	SetMoveType( MOVETYPE_NONE );
+
+	// Save ragdoll handle.
 	m_hRagdoll = pRagdoll;
 }
+
 //-----------------------------------------------------------------------------
 // Purpose: Destroy's a ragdoll, called when a player is disconnecting.
 //-----------------------------------------------------------------------------

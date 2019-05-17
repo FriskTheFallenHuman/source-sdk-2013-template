@@ -135,6 +135,8 @@ extern const char *pszTeamNames[];
 #define SDK_DEFAULT_PLAYER_SPRINTSPEED		330
 #define SDK_DEFAULT_PLAYER_PRONESPEED		50
 
+#define SDK_PLAYER_INDEX_NONE			( MAX_PLAYERS + 1 )
+
 //--------------------------------------------------------------------------------------------------------
 //
 // Weapon IDs for all SDK Game weapons

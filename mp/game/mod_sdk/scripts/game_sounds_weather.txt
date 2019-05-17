@@ -1,0 +1,139 @@
+"Weather.lightning_strike_1"
+{
+	"channel"	"CHAN_STATIC"
+	"volume"	"1"
+	"pitch"		"100"
+	"soundlevel"  	"SNDLVL_NONE"
+	"wave"		"ambient/weather/thunderstorm/lightning_strike_1.wav"
+}
+
+
+"Weather.lightning_strike_2"
+{
+	"channel"	"CHAN_STATIC"
+	"volume"	"1"
+	"pitch"		"100"
+	"soundlevel"  	"SNDLVL_NONE"
+	"wave"		"ambient/weather/thunderstorm/lightning_strike_2.wav"
+}
+
+
+"Weather.lightning_strike_3"
+{
+	"channel"	"CHAN_STATIC"
+	"volume"	"1"
+	"pitch"		"100"
+	"soundlevel"  	"SNDLVL_NONE"
+	"wave"		"ambient/weather/thunderstorm/lightning_strike_3.wav"
+}
+
+
+"Weather.lightning_strike_4"
+{
+	"channel"	"CHAN_STATIC"
+	"volume"	"1"
+	"pitch"		"100"
+	"soundlevel"  	"SNDLVL_NONE"
+	"wave"		"ambient/weather/thunderstorm/lightning_strike_4.wav"
+}
+
+
+"Weather.thunder_1"
+{
+	"channel"	"CHAN_STATIC"
+	"volume"	"1"
+	"pitch"		"100"
+	"soundlevel"  	"SNDLVL_70dB"
+	"wave"		"ambient/weather/thunderstorm/thunder_1.wav"
+}
+
+
+"Weather.thunder_2"
+{
+	"channel"	"CHAN_STATIC"
+	"volume"	"1"
+	"pitch"		"100"
+	"soundlevel"  	"SNDLVL_70dB"
+	"wave"		"ambient/weather/thunderstorm/thunder_2.wav"
+}
+
+
+"Weather.thunder_3"
+{
+	"channel"	"CHAN_STATIC"
+	"volume"	"1"
+	"pitch"		"100"
+	"soundlevel"  	"SNDLVL_70dB"
+	"wave"		"ambient/weather/thunderstorm/thunder_3.wav"
+}
+
+
+"Weather.thunder_far_away_1"
+{
+	"channel"	"CHAN_STATIC"
+	"volume"	"1"
+	"pitch"		"100"
+	"soundlevel"  	"SNDLVL_70dB"
+	"wave"		"ambient/weather/thunderstorm/thunder_far_away_1.wav"
+}
+
+
+"Weather.thunder_far_away_2"
+{
+	"channel"	"CHAN_STATIC"
+	"volume"	"1"
+	"pitch"		"100"
+	"soundlevel"  	"SNDLVL_70dB"
+	"wave"		"ambient/weather/thunderstorm/thunder_far_away_2.wav"
+}
+
+"Weather.thunder_close_1"
+{
+	"channel"	"CHAN_STATIC"
+	"volume"	"1"
+	"pitch"		"100"
+	"soundlevel"  	"SNDLVL_NONE"
+	"wave"		"ambient/ambience/rainscapes/Thunder_close01.wav"
+}
+
+
+"Weather.thunder_close_2"
+{
+	"channel"	"CHAN_STATIC"
+	"volume"	"1"
+	"pitch"		"100"
+	"soundlevel"  	"SNDLVL_NONE"
+	"wave"		"ambient/ambience/rainscapes/Thunder_close02.wav"
+}
+
+"Weather.thunder_close_3"
+{
+	"channel"	"CHAN_STATIC"
+	"volume"	"1"
+	"pitch"		"100"
+	"soundlevel"  	"SNDLVL_NONE"
+	"wave"		"ambient/ambience/rainscapes/Thunder_close03.wav"
+}
+
+"Weather.thunder_close_4"
+{
+	"channel"	"CHAN_STATIC"
+	"volume"	"1"
+	"pitch"		"100"
+	"soundlevel"  	"SNDLVL_NONE"
+	"wave"		"ambient/ambience/rainscapes/Thunder_close04.wav"
+}
+
+"Weather.thunder_close_all_4"
+{
+	"channel"	"CHAN_STATIC"
+	"volume"	"1"
+	"pitch"		"100"
+	"soundlevel"  	"SNDLVL_NONE"
+	"rndwave"
+	{
+		"wave"		"ambient/ambience/rainscapes/Thunder_close01.wav"
+		"wave"		"ambient/ambience/rainscapes/Thunder_close02.wav"
+		"wave"		"ambient/ambience/rainscapes/Thunder_close03.wav"
+	}
+}
