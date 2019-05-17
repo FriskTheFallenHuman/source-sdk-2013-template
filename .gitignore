@@ -57,6 +57,7 @@ config.cfg
 mp/game/*/cfg/server_blacklist.txt
 mp/game/*/cfg/settings.scr
 mp/game/*/sound/sound.cache
+mp/game/*/download/*
 mp/game/*/stats.txt
 mp/game/*/console.txt
 mp/game/*/voice_ban.dt
