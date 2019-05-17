@@ -121,6 +121,10 @@ extern ConVar tf_mm_servermode;
 #include "bot/bot.h"
 #endif
 
+#if defined ( SDK_DLL )
+#include "sdk_gamerules.h"
+#endif
+
 #ifdef PORTAL
 #include "prop_portal_shared.h"
 #include "portal_player.h"
@@ -1136,6 +1140,11 @@ void CServerGameDLL::ServerActivate( edict_t *pEdictList, int edictCount, int cl
 
 #ifdef CSTRIKE_DLL // BOTPORT: TODO: move these ifdefs out
 	TheBots->ServerActivate();
+#endif
+
+//Tony; call activate on the gamerules
+#if defined ( SDK_DLL )
+	SDKGameRules()->ServerActivate();
 #endif
 
 #ifdef NEXT_BOT
