@@ -69,6 +69,13 @@ enum PlayerAnimEvent_t
 	PLAYERANIMEVENT_PASSTIME_THROW_CANCEL,
 
 	PLAYERANIMEVENT_ATTACK_PRIMARY_SUPER,
+	
+	// Tony; some SDK ones now too.
+	PLAYERANIMEVENT_STAND_TO_PRONE,
+	PLAYERANIMEVENT_CROUCH_TO_PRONE,
+	PLAYERANIMEVENT_PRONE_TO_STAND,
+	PLAYERANIMEVENT_PRONE_TO_CROUCH,
+
 
 	PLAYERANIMEVENT_COUNT
 };
@@ -297,7 +304,6 @@ protected:
 	// Pose parameters.
 	bool						m_bPoseParameterInit;
 	MultiPlayerPoseData_t		m_PoseParameterData;
-	DebugPlayerAnimData_t		m_DebugAnimData;
 
 	bool						m_bCurrentFeetYawInitialized;
 	float						m_flLastAnimationStateClearTime;
@@ -342,6 +348,14 @@ protected:
 	// movement playback options
 	int m_nMovementSequence;
 	LegAnimType_t m_LegAnimType;
+
+	//Tony; moved debuganim data to a private block and made the 2 sdk animstates friendly. I override the base classes
+	//but want complete functionality.
+private:
+	friend class CSDKPlayerAnimState;
+	friend class CHL2MPPlayerAnimState;
+	DebugPlayerAnimData_t		m_DebugAnimData;
+
 };
 
 // If this is set, then the game code needs to make sure to send player animation events

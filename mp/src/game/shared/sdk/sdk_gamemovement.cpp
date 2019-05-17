@@ -4,13 +4,6 @@
 //
 // $NoKeywords: $
 //=============================================================================//
-
-//========= Copyright © 1996-2001, Valve LLC, All rights reserved. ============
-//
-// Purpose: 
-//
-// $NoKeywords: $
-//=============================================================================
 #include "cbase.h"
 #include "gamemovement.h"
 #include "sdk_gamerules.h"

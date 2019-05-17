@@ -20,6 +20,12 @@ $Configuration
 
 $Project "Client (SDK)"
 {
+
+	$Folder	"game_controls Header Files"
+	{
+		$File	"game_controls\ClassMenu.h"
+	}
+
 	$Folder	"Source Files"
 	{
 		-$File	"$SRCDIR\game\shared\weapon_parse_default.cpp"
@@ -37,6 +43,11 @@ $Project "Client (SDK)"
 		$File	"hud_basedeathnotice.h"
 		$File	"$SRCDIR\game\shared\playerclass_info_parse.cpp"
 		$File	"$SRCDIR\game\shared\playerclass_info_parse.h"
+
+		$Folder	"game_controls"
+		{
+			$File	"game_controls\ClassMenu.cpp"
+		}
 
 		$Folder	"SDK"
 		{

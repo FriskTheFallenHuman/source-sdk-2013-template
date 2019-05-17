@@ -469,7 +469,7 @@ void Bot_Think( CSDKBot *pBot )
 		Bot_FlipOut( pBot, cmd );
 
 		// Fix up the m_fEffects flags
-		pBot->PostClientMessagesSent();
+		//pBot->PostClientMessagesSent();
 
 		
 		

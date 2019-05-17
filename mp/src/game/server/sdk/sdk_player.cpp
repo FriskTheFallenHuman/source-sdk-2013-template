@@ -17,7 +17,6 @@
 #include "GameStats.h"
 #include "obstacle_pushaway.h"
 #include "in_buttons.h"
-#include "haptic_utils.h"
 
 // memdbgon must be the last include file in a .cpp file!!!
 #include "tier0/memdbgon.h"
@@ -71,6 +70,13 @@ void TE_PlayerAnimEvent( CBasePlayer *pPlayer, PlayerAnimEvent_t event, int nDat
 	g_TEPlayerAnimEvent.m_iEvent = event;
 	g_TEPlayerAnimEvent.m_nData = nData;
 	g_TEPlayerAnimEvent.Create( filter, 0 );
+}
+
+void* SendProxy_SendNonLocalDataTable( const SendProp* pProp, const void* pStruct, const void* pVarData, CSendProxyRecipients* pRecipients, int objectID )
+{
+    pRecipients->SetAllRecipients();
+    pRecipients->ClearRecipient( objectID - 1 );
+    return (void*)pVarData;
 }
 
 // -------------------------------------------------------------------------------- //
@@ -1404,7 +1410,10 @@ void CSDKPlayer::State_Enter_WELCOME()
 		data->SetString( "title", title );		// info panel title
 		data->SetString( "type", "1" );			// show userdata from stringtable entry
 		data->SetString( "msg",	"motd" );		// use this stringtable entry
-		data->SetString( "cmd", TEXTWINDOW_CMD_JOINGAME );// exec this command if panel closed
+		//data->SetString( "cmd", TEXTWINDOW_CMD_JOINGAME );// exec this command if panel closed
+		CCommand args;
+		args.Tokenize( "joingame" );
+		ClientCommand( args );
 
 		ShowViewPortPanel( PANEL_INFO, true, data );
 

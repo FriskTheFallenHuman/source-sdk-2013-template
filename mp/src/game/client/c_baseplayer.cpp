@@ -1552,7 +1552,14 @@ void C_BasePlayer::CalcChaseCamView(Vector& eyeOrigin, QAngle& eyeAngles, float&
 		}
 	}
 
-	if ( target && !target->IsPlayer() && target->IsNextBot() )
+	// SDK TODO
+	if ( target && target->IsBaseTrain() )
+	{
+		// if this is a train, we want to be back a little further so we can see more of it
+		flMaxDistance *= 2.5f;
+		m_flObserverChaseDistance = flMaxDistance;
+	}
+	else if ( target && !target->IsPlayer() && target->IsNextBot() )
 	{
 		// if this is a boss, we want to be back a little further so we can see more of it
 		flMaxDistance *= 2.5f;
@@ -1783,13 +1790,7 @@ void C_BasePlayer::CalcDeathCamView(Vector& eyeOrigin, QAngle& eyeAngles, float&
 	interpolation = clamp( interpolation, 0.0f, 1.0f );
 
 	m_flObserverChaseDistance += gpGlobals->frametime*48.0f;
-	float flMaxDistance = CHASE_CAM_DISTANCE_MAX;
-	if ( target && target->IsBaseTrain() )
-	{
-		// if this is a train, we want to be back a little further so we can see more of it
-		flMaxDistance *= 2.5f;
-	}
-	m_flObserverChaseDistance = clamp( m_flObserverChaseDistance, 16, flMaxDistance );
+	m_flObserverChaseDistance = clamp( m_flObserverChaseDistance, ( CHASE_CAM_DISTANCE_MIN * 2 ), CHASE_CAM_DISTANCE_MAX );
 
 	QAngle aForward = eyeAngles;
 	Vector origin = EyePosition();			
