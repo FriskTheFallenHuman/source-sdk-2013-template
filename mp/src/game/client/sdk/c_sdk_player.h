@@ -48,6 +48,8 @@ public:
 	// Have this player play the sounds from his view model's reload animation.
 	void PlayReloadEffect();
 
+	virtual bool ShouldResetSequenceOnNewModel( void ) { return false; }
+
 // Called by shared code.
 public:
 	SDKPlayerState State_Get() const;

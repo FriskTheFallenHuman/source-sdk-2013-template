@@ -10,17 +10,13 @@
 #include "takedamageinfo.h"
 #include "weapon_sdkbase.h"
 #include "ammodef.h"
- 
+ #include "datacache/imdlcache.h"
 #include "sdk_fx_shared.h"
  
 #if defined( CLIENT_DLL )
- 
 	#include "c_sdk_player.h"
- 
 #else
- 
 	#include "sdk_player.h"
- 
 #endif
  
 // ----------------------------------------------------------------------------- //

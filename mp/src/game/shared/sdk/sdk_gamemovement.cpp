@@ -63,13 +63,13 @@ public:
 	bool CanUnprone();
 #endif // SDK_USE_PRONE
 
-	virtual const Vector&	GetPlayerMins( void ) const; // uses local player
-	virtual const Vector&	GetPlayerMaxs( void ) const; // uses local player
+	virtual  Vector	GetPlayerMins( void ) const; // uses local player
+	virtual  Vector	GetPlayerMaxs( void ) const; // uses local player
 
 	// IGameMovement interface
-	virtual const Vector&	GetPlayerMins( bool ducked ) const { return BaseClass::GetPlayerMins(ducked); }
-	virtual const Vector&	GetPlayerMaxs( bool ducked ) const { return BaseClass::GetPlayerMaxs(ducked); }
-	virtual const Vector&	GetPlayerViewOffset( bool ducked ) const { return BaseClass::GetPlayerViewOffset(ducked); }
+	virtual  Vector	GetPlayerMins( bool ducked ) const { return BaseClass::GetPlayerMins(ducked); }
+	virtual  Vector	GetPlayerMaxs( bool ducked ) const { return BaseClass::GetPlayerMaxs(ducked); }
+	virtual  Vector	GetPlayerViewOffset( bool ducked ) const { return BaseClass::GetPlayerViewOffset(ducked); }
 
 	virtual unsigned int PlayerSolidMask( bool brushOnly = false );
 
@@ -1310,7 +1310,7 @@ unsigned int CSDKGameMovement::PlayerSolidMask( bool brushOnly )
 // Input  : 
 // Output : const Vector
 //-----------------------------------------------------------------------------
-const Vector& CSDKGameMovement::GetPlayerMins( void ) const
+Vector CSDKGameMovement::GetPlayerMins( void ) const
 {
 	if ( !player )
 	{
@@ -1339,7 +1339,7 @@ const Vector& CSDKGameMovement::GetPlayerMins( void ) const
 // Input  : 
 // Output : const Vector
 //-----------------------------------------------------------------------------
-const Vector& CSDKGameMovement::GetPlayerMaxs( void ) const
+Vector CSDKGameMovement::GetPlayerMaxs( void ) const
 {	
 	if ( !player )
 	{

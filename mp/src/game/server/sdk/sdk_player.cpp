@@ -17,6 +17,8 @@
 #include "GameStats.h"
 #include "obstacle_pushaway.h"
 #include "in_buttons.h"
+#include "haptic_utils.h"
+
 // memdbgon must be the last include file in a .cpp file!!!
 #include "tier0/memdbgon.h"
 
@@ -349,6 +351,11 @@ void CSDKPlayer::Spawn()
 
 	m_hRagdoll = NULL;
 	
+	RemoveEffects( EF_NOINTERP );
+
+	//Tony; do the spawn animevent
+	DoAnimationEvent( PLAYERANIMEVENT_SPAWN );
+	
 	BaseClass::Spawn();
 #if defined ( SDK_USE_STAMINA ) || defined ( SDK_USE_SPRINTING )
 	m_Shared.SetStamina( 100 );
@@ -548,6 +555,7 @@ void CSDKPlayer::CommitSuicide( bool bExplode /* = false */, bool bForce /*= fal
 
 	BaseClass::CommitSuicide( bExplode, bForce );
 }
+
 void CSDKPlayer::InitialSpawn( void )
 {
 	BaseClass::InitialSpawn();
@@ -555,12 +563,14 @@ void CSDKPlayer::InitialSpawn( void )
 	State_Enter( STATE_WELCOME );
 
 }
-void CSDKPlayer::TraceAttack( const CTakeDamageInfo &inputInfo, const Vector &vecDir, trace_t *ptr )
+
+void CSDKPlayer::TraceAttack( const CTakeDamageInfo &inputInfo, const Vector &vecDir, trace_t *ptr, CDmgAccumulator *pAccumulator )
 {
 	//Tony; disable prediction filtering, and call the baseclass.
 	CDisablePredictionFiltering disabler;
-	BaseClass::TraceAttack( inputInfo, vecDir, ptr );
+	BaseClass::TraceAttack( inputInfo, vecDir, ptr, pAccumulator );
 }
+
 int CSDKPlayer::OnTakeDamage( const CTakeDamageInfo &inputInfo )
 {
 	CTakeDamageInfo info = inputInfo;
@@ -1394,7 +1404,7 @@ void CSDKPlayer::State_Enter_WELCOME()
 		data->SetString( "title", title );		// info panel title
 		data->SetString( "type", "1" );			// show userdata from stringtable entry
 		data->SetString( "msg",	"motd" );		// use this stringtable entry
-		data->SetString( "cmd", "joingame" );// exec this command if panel closed
+		data->SetString( "cmd", TEXTWINDOW_CMD_JOINGAME );// exec this command if panel closed
 
 		ShowViewPortPanel( PANEL_INFO, true, data );
 

@@ -3922,6 +3922,36 @@ void C_BaseAnimating::FireEvent( const Vector& origin, const QAngle& angles, int
 	case AE_NPC_MUZZLEFLASH:
 		{
 			// Send out the effect for an NPC
+#if defined ( HL2MP ) || defined ( SDK_DLL ) // works for the modified CSS weapons included in the new template sdk.
+			// HL2MP - Make third person muzzleflashes as reliable as the first person ones
+			// while in third person the view model dispatches the muzzleflash event - note: the weapon models dispatch them too, but not frequently.
+			if ( IsViewModel() )
+			{
+				C_BasePlayer *pPlayer = ToBasePlayer( dynamic_cast<C_BaseViewModel *>(this)->GetOwner() );
+				if ( pPlayer && pPlayer == C_BasePlayer::GetLocalPlayer())
+				{
+					if ( ::input->CAM_IsThirdPerson() )
+					{
+						// Dispatch on the weapon - the player model doesn't have the attachments in hl2mp.
+						C_BaseCombatWeapon *pWeapon = pPlayer->GetActiveWeapon();
+						if ( !pWeapon )
+							break;
+						pWeapon->DispatchMuzzleEffect( options, false );
+						break;
+					}
+				}
+			}
+
+			// Check if we're a weapon, if we belong to the local player, and if the local player is in third person - if all are true, don't do a muzzleflash in this instance, because
+			// we're using the view models dispatch for smoothness.
+			if ( dynamic_cast< C_BaseCombatWeapon *>(this) != NULL )
+			{
+				C_BaseCombatWeapon *pWeapon = dynamic_cast< C_BaseCombatWeapon *>(this);
+				if ( pWeapon && pWeapon->GetOwner() == C_BasePlayer::GetLocalPlayer() && ::input->CAM_IsThirdPerson() )
+					break;
+			}
+			
+#endif
 			DispatchMuzzleEffect( options, false );
 			break;
 		}
@@ -4177,7 +4207,33 @@ void C_BaseAnimating::FireObsoleteEvent( const Vector& origin, const QAngle& ang
 				bFirstPerson = false;
 				break;
 			}
-
+#if defined ( SDK_DLL )
+			// HACKHACKHACK for third person. Will hacks ever be unnecessary? -- These Events are obsolete
+			// in third person, make first person muzzle flashes NOT dispatch!
+			if ( IsViewModel() )
+			{
+				C_BasePlayer *pPlayer = ToBasePlayer( dynamic_cast<C_BaseViewModel *>(this)->GetOwner() );
+				if ( pPlayer && pPlayer == C_BasePlayer::GetLocalPlayer())
+				{
+					if ( ::input->CAM_IsThirdPerson() )
+					{
+// Don't do anything now, the sample weapon models in the new SDK don't use these events anymore - just back out if any models are 'taken' from other mods like css.
+#if 0	
+						// Dispatch on the weapon 
+						C_BaseCombatWeapon *pWeapon = pPlayer->GetActiveWeapon();
+						if ( !pWeapon )	break;
+						
+						if ( iAttachment != -1 )
+						{
+							if ( pWeapon->GetAttachment( iAttachment+1, attachOrigin, attachAngles ) )
+								tempents->MuzzleFlash( attachOrigin, attachAngles, atoi( options ), pWeapon->GetRefEHandle(), false );
+						}
+#endif
+						break;
+					}
+				}
+			}
+#endif
 			if ( iAttachment != -1 && m_Attachments.Count() > iAttachment )
 			{
 				GetAttachment( iAttachment+1, attachOrigin, attachAngles );

@@ -206,6 +206,14 @@ BEGIN_RECV_TABLE_NOBASE( CPlayerLocalData, DT_Local )
 	RecvPropInt( RECVINFO( m_audio.soundscapeIndex ) ),
 	RecvPropInt( RECVINFO( m_audio.localBits ) ),
 	RecvPropEHandle( RECVINFO( m_audio.ent ) ),
+
+	//Tony; tonemap stuff! -- TODO! Optimize this with bit sizes from env_tonemap_controller.
+	RecvPropFloat ( RECVINFO( m_TonemapParams.m_flTonemapScale ) ),
+	RecvPropFloat ( RECVINFO( m_TonemapParams.m_flTonemapRate ) ),
+	RecvPropFloat ( RECVINFO( m_TonemapParams.m_flBloomScale ) ),
+
+	RecvPropFloat ( RECVINFO( m_TonemapParams.m_flAutoExposureMin ) ),
+	RecvPropFloat ( RECVINFO( m_TonemapParams.m_flAutoExposureMax ) ),
 END_RECV_TABLE()
 
 // -------------------------------------------------------------------------------- //
@@ -399,7 +407,11 @@ BEGIN_PREDICTION_DATA( C_BasePlayer )
 
 END_PREDICTION_DATA()
 
+// link this in each derived player class, like the server!!
+#if 0
 LINK_ENTITY_TO_CLASS( player, C_BasePlayer );
+#endif
+
 
 // -------------------------------------------------------------------------------- //
 // Functions.
@@ -1771,7 +1783,13 @@ void C_BasePlayer::CalcDeathCamView(Vector& eyeOrigin, QAngle& eyeAngles, float&
 	interpolation = clamp( interpolation, 0.0f, 1.0f );
 
 	m_flObserverChaseDistance += gpGlobals->frametime*48.0f;
-	m_flObserverChaseDistance = clamp( m_flObserverChaseDistance, ( CHASE_CAM_DISTANCE_MIN * 2 ), CHASE_CAM_DISTANCE_MAX );
+	float flMaxDistance = CHASE_CAM_DISTANCE_MAX;
+	if ( target && target->IsBaseTrain() )
+	{
+		// if this is a train, we want to be back a little further so we can see more of it
+		flMaxDistance *= 2.5f;
+	}
+	m_flObserverChaseDistance = clamp( m_flObserverChaseDistance, 16, flMaxDistance );
 
 	QAngle aForward = eyeAngles;
 	Vector origin = EyePosition();			
@@ -1872,6 +1890,12 @@ void C_BasePlayer::ThirdPersonSwitch( bool bThirdperson )
 				}
 			}
 		}
+	}
+	else
+	{
+		CBaseCombatWeapon *pWeapon = GetActiveWeapon();
+		if ( pWeapon )
+			pWeapon->ThirdPersonSwitch( bThirdperson );
 	}
 }
 

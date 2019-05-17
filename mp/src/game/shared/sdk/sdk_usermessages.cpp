@@ -9,6 +9,9 @@
 #include "shake.h"
 #include "voice_gamemgr.h"
 
+// NVNT include to register in haptic user messages
+#include "haptics/haptic_msgs.h"
+
 void RegisterUserMessages()
 {
 	usermessages->Register( "Geiger", 1 );		// geiger info data
@@ -49,5 +52,10 @@ void RegisterUserMessages()
 
 	// Used to send a sample HUD message
 	usermessages->Register( "GameMessage", -1 );
+	
+#ifndef _X360
+	// NVNT register haptic user messages
+	RegisterHapticMessages();
+#endif
 }
 

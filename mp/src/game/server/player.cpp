@@ -731,9 +731,13 @@ int CBasePlayer::ShouldTransmit( const CCheckTransmitInfo *pInfo )
 
 bool CBasePlayer::WantsLagCompensationOnEntity( const CBasePlayer *pPlayer, const CUserCmd *pCmd, const CBitVec<MAX_EDICTS> *pEntityTransmitBits ) const
 {
-	// Team members shouldn't be adjusted unless friendly fire is on.
-	if ( !friendlyfire.GetInt() && pPlayer->GetTeamNumber() == GetTeamNumber() )
-		return false;
+	//Tony; only check teams in teamplay
+	if ( gpGlobals->teamplay )
+	{
+		// Team members shouldn't be adjusted unless friendly fire is on.
+		if ( !friendlyfire.GetInt() && pPlayer->GetTeamNumber() == GetTeamNumber() )
+			return false;
+	}
 
 	// If this entity hasn't been transmitted to us and acked, then don't bother lag compensating it.
 	if ( pEntityTransmitBits && !pEntityTransmitBits->Get( pPlayer->entindex() ) )
@@ -1564,9 +1568,10 @@ void CBasePlayer::RemoveAllItems( bool removeSuit )
 	UpdateClientData();
 }
 
+//Tony; correct this for base code so that IsDead will be correct accross all games.
 bool CBasePlayer::IsDead() const
 {
-	return m_lifeState == LIFE_DEAD;
+	return m_lifeState != LIFE_ALIVE;
 }
 
 static float DamageForce( const Vector &size, float damage )
@@ -2872,6 +2877,10 @@ float CBasePlayer::GetHeldObjectMass( IPhysicsObject *pHeldObject )
 	return 0;
 }
 
+CBaseEntity	*CBasePlayer::GetHeldObject( void )
+{
+	return NULL;
+}
 
 //-----------------------------------------------------------------------------
 // Purpose:	Server side of jumping rules.  Most jumping logic is already
@@ -4897,6 +4906,55 @@ void CBasePlayer::InitialSpawn( void )
 }
 
 //-----------------------------------------------------------------------------
+// Purpose: clear our m_Local.m_TonemapParams to -1.
+//-----------------------------------------------------------------------------
+void CBasePlayer::ClearTonemapParams( void )
+{
+	//Tony; clear all the variables to -1.0
+	m_Local.m_TonemapParams.m_flAutoExposureMin = -1.0f;
+	m_Local.m_TonemapParams.m_flAutoExposureMax = -1.0f;
+	m_Local.m_TonemapParams.m_flTonemapScale = -1.0f;
+	m_Local.m_TonemapParams.m_flBloomScale = -1.0f;
+	m_Local.m_TonemapParams.m_flTonemapRate = -1.0f;
+}
+void CBasePlayer::InputSetTonemapScale( inputdata_t &inputdata )
+{
+	m_Local.m_TonemapParams.m_flTonemapScale = inputdata.value.Float();
+}
+
+void CBasePlayer::InputSetTonemapRate( inputdata_t &inputdata )
+{
+	m_Local.m_TonemapParams.m_flTonemapRate = inputdata.value.Float();
+}
+void CBasePlayer::InputSetAutoExposureMin( inputdata_t &inputdata )
+{
+	m_Local.m_TonemapParams.m_flAutoExposureMin = inputdata.value.Float();
+}
+
+void CBasePlayer::InputSetAutoExposureMax( inputdata_t &inputdata )
+{
+	m_Local.m_TonemapParams.m_flAutoExposureMax = inputdata.value.Float();
+}
+
+void CBasePlayer::InputSetBloomScale( inputdata_t &inputdata )
+{
+	m_Local.m_TonemapParams.m_flBloomScale = inputdata.value.Float();
+}
+
+//Tony; restore defaults (set min/max to -1.0 so nothing gets overridden)
+void CBasePlayer::InputUseDefaultAutoExposure( inputdata_t &inputdata )
+{
+	m_Local.m_TonemapParams.m_flAutoExposureMin = -1.0f;
+	m_Local.m_TonemapParams.m_flAutoExposureMax = -1.0f;
+	m_Local.m_TonemapParams.m_flTonemapRate = -1.0f;
+}
+void CBasePlayer::InputUseDefaultBloomScale( inputdata_t &inputdata )
+{
+	m_Local.m_TonemapParams.m_flBloomScale = -1.0f;
+}
+//	void	InputSetBloomScaleRange( inputdata_t &inputdata );
+
+//-----------------------------------------------------------------------------
 // Purpose: Called everytime the player respawns
 //-----------------------------------------------------------------------------
 void CBasePlayer::Spawn( void )
@@ -4906,6 +4964,9 @@ void CBasePlayer::Spawn( void )
 	{
 		Hints()->ResetHints();
 	}
+
+	//Tony; make sure tonemap params is cleared.
+	ClearTonemapParams();
 
 	SetClassname( "player" );
 
@@ -8857,6 +8918,14 @@ bool CBasePlayer::HandleVoteCommands( const CCommand &args )
 //-----------------------------------------------------------------------------
 const char *CBasePlayer::GetNetworkIDString()
 {
+	//Tony; bots don't have network id's, and this can potentially crash, especially with plugins creating them.
+	if (IsBot())
+		return "__BOT__";
+
+	//Tony; if networkidstring is null for any reason, the strncpy will crash!
+	if (!m_szNetworkIDString)
+		return "NULLID";
+
 	const char *pStr = engine->GetPlayerNetworkIDString( edict() );
 	Q_strncpy( m_szNetworkIDString, pStr ? pStr : "", sizeof(m_szNetworkIDString) );
 	return m_szNetworkIDString; 

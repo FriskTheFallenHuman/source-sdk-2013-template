@@ -183,7 +183,7 @@ public:
 
 	// Flashlight
 	void	Flashlight( void );
-	void	UpdateFlashlight( void );
+	virtual void	UpdateFlashlight( void );
 
 	// Weapon selection code
 	virtual bool				IsAllowedToSwitchWeapons( void ) { return !IsObserver(); }
@@ -445,18 +445,18 @@ public:
 
 protected:
 
-	void				CalcPlayerView( Vector& eyeOrigin, QAngle& eyeAngles, float& fov );
-	void				CalcVehicleView(IClientVehicle *pVehicle, Vector& eyeOrigin, QAngle& eyeAngles,
-							float& zNear, float& zFar, float& fov );
+	//Tony; made all of these virtual so mods can override.
+	virtual void		CalcPlayerView( Vector& eyeOrigin, QAngle& eyeAngles, float& fov );
+	virtual void		CalcVehicleView(IClientVehicle *pVehicle, Vector& eyeOrigin, QAngle& eyeAngles, float& zNear, float& zFar, float& fov );
 	virtual void		CalcObserverView( Vector& eyeOrigin, QAngle& eyeAngles, float& fov );
 	virtual Vector		GetChaseCamViewOffset( CBaseEntity *target );
-	void				CalcChaseCamView( Vector& eyeOrigin, QAngle& eyeAngles, float& fov );
+	virtual void		CalcChaseCamView( Vector& eyeOrigin, QAngle& eyeAngles, float& fov );
 	virtual void		CalcInEyeCamView( Vector& eyeOrigin, QAngle& eyeAngles, float& fov );
 
 	virtual float		GetDeathCamInterpolationTime();
 
 	virtual void		CalcDeathCamView( Vector& eyeOrigin, QAngle& eyeAngles, float& fov );
-	void				CalcRoamingView(Vector& eyeOrigin, QAngle& eyeAngles, float& fov);
+	virtual void		CalcRoamingView(Vector& eyeOrigin, QAngle& eyeAngles, float& fov);
 	virtual void		CalcFreezeCamView( Vector& eyeOrigin, QAngle& eyeAngles, float& fov );
 
 	// Check to see if we're in vgui input mode...
@@ -571,6 +571,9 @@ private:
 	friend class CHL2GameMovement;
 	friend class CDODGameMovement;
 	friend class CPortalGameMovement;
+#if defined ( SDK_DLL )
+	friend class CSDKGameMovement;
+#endif
 	
 	// Accessors for gamemovement
 	float GetStepSize( void ) const { return m_Local.m_flStepSize; }

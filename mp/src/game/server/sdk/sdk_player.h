@@ -64,7 +64,7 @@ public:
 	virtual int			OnTakeDamage( const CTakeDamageInfo &inputInfo );
 	virtual int			OnTakeDamage_Alive( const CTakeDamageInfo &info );
 	virtual void Event_Killed( const CTakeDamageInfo &info );
-	virtual void TraceAttack( const CTakeDamageInfo &inputInfo, const Vector &vecDir, trace_t *ptr );
+	virtual void TraceAttack( const CTakeDamageInfo &info, const Vector &vecDir, trace_t *ptr, CDmgAccumulator *pAccumulator );
 	virtual void LeaveVehicle( const Vector &vecExitPoint, const QAngle &vecExitAngles );
 	
 	CWeaponSDKBase* GetActiveSDKWeapon() const;
