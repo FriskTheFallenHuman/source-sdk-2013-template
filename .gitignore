@@ -21,6 +21,8 @@ ipch
 *.sln
 *.vpc_crc
 *.filters
+*.pdb
+*.sentinel
 
 # OSX/Linux build products
 *.mak
