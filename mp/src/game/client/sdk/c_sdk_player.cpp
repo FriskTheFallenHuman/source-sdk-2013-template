@@ -21,18 +21,22 @@
 #include "obstacle_pushaway.h"
 #include "bone_setup.h"
 #include "cl_animevent.h"
-#include "tier0/vprof.h"
 
 // memdbgon must be the last include file in a .cpp file!!!
+ConVar cl_ragdoll_physics_enable( "cl_ragdoll_physics_enable", "1", 0, "Enable/disable ragdoll physics." );
 #include "tier0/memdbgon.h"
 
 #if defined( CSDKPlayer )
 	#undef CSDKPlayer
 #endif
 
+
+
+
 // -------------------------------------------------------------------------------- //
 // Player animation event. Sent to the client when a player fires, jumps, reloads, etc..
 // -------------------------------------------------------------------------------- //
+
 class C_TEPlayerAnimEvent : public C_BaseTempEntity
 {
 public:
@@ -154,26 +158,10 @@ END_PREDICTION_DATA()
 
 LINK_ENTITY_TO_CLASS( player, C_SDKPlayer );
 
-//=============================================================================
-//
-// Ragdoll
-//
-//=============================================================================
-ConVar cl_ragdoll_physics_enable( "cl_ragdoll_physics_enable", "1", 0, "Enable/disable ragdoll physics." );
-ConVar cl_ragdoll_fade_time( "cl_ragdoll_fade_time", "15", FCVAR_CLIENTDLL );
-ConVar cl_ragdoll_forcefade( "cl_ragdoll_forcefade", "0", FCVAR_CLIENTDLL );
-ConVar cl_ragdoll_pronecheck_distance( "cl_ragdoll_pronecheck_distance", "64", FCVAR_GAMEDLL );
-
-void FX_BloodSpray( const Vector &origin, const Vector &normal, float scale, unsigned char r, unsigned char g, unsigned char b, int flags );
-
-// ----------------------------------------------------------------------------- //
-// Client ragdoll entity.
-// ----------------------------------------------------------------------------- //
-class C_SDKRagdoll : public C_BaseFlex
+class C_SDKRagdoll : public C_BaseAnimatingOverlay
 {
 public:
-
-	DECLARE_CLASS( C_SDKRagdoll, C_BaseFlex );
+	DECLARE_CLASS( C_SDKRagdoll, C_BaseAnimatingOverlay );
 	DECLARE_CLIENTCLASS();
 	
 	C_SDKRagdoll();
@@ -181,84 +169,49 @@ public:
 
 	virtual void OnDataChanged( DataUpdateType_t type );
 
+	int GetPlayerEntIndex() const;
 	IRagdoll* GetIRagdoll() const;
 
 	void ImpactTrace( trace_t *pTrace, int iDamageType, const char *pCustomImpactName );
-
-	void ClientThink( void );
-	void StartFadeOut( float fDelay );
-	void EndFadeOut();
-
-	EHANDLE GetPlayerHandle( void ) 	
-	{
-		if ( m_iPlayerIndex == SDK_PLAYER_INDEX_NONE )
-			return NULL;
-
-		return cl_entitylist->GetNetworkableHandle( m_iPlayerIndex );
-	}
-
-	bool IsRagdollVisible();
-
+	void UpdateOnRemove( void );
 	virtual void SetupWeights( const matrix3x4_t *pBoneToWorld, int nFlexWeightCount, float *pFlexWeights, float *pFlexDelayedWeights );
-	virtual float FrameAdvance( float flInterval = 0.0f );
-
+	
 private:
 	
 	C_SDKRagdoll( const C_SDKRagdoll & ) {}
 
-	void Interp_Copy( C_BaseAnimatingOverlay *pSourceEntity );
-
+	void Interp_Copy( C_BaseAnimatingOverlay *pDestinationEntity );
 	void CreateSDKRagdoll( void );
+
 private:
 
+	EHANDLE	m_hPlayer;
 	CNetworkVector( m_vecRagdollVelocity );
 	CNetworkVector( m_vecRagdollOrigin );
-	int	  m_iPlayerIndex;
-	float m_fDeathTime;
-	bool  m_bFadingOut;
-	bool  m_bOnGround;
-	int   m_iDamageCustom;
-	float m_flDeathAnimEndTime;
 };
 
-IMPLEMENT_CLIENTCLASS_DT_NOBASE( C_SDKRagdoll, DT_TFRagdoll, CTFRagdoll )
-	RecvPropVector( RECVINFO( m_vecRagdollOrigin ) ),
-	RecvPropInt( RECVINFO( m_iPlayerIndex ) ),
-	RecvPropVector( RECVINFO( m_vecForce ) ),
-	RecvPropVector( RECVINFO( m_vecRagdollVelocity ) ),
-	RecvPropInt( RECVINFO( m_nForceBone ) ),
-	RecvPropBool( RECVINFO( m_bOnGround ) ),
-	RecvPropInt( RECVINFO( m_iDamageCustom ) ),
+IMPLEMENT_CLIENTCLASS_DT_NOBASE( C_SDKRagdoll, DT_SDKRagdoll, CSDKRagdoll )
+	RecvPropVector( RECVINFO(m_vecRagdollOrigin) ),
+	RecvPropEHandle( RECVINFO( m_hPlayer ) ),
+	RecvPropInt( RECVINFO( m_nModelIndex ) ),
+	RecvPropInt( RECVINFO(m_nForceBone) ),
+	RecvPropVector( RECVINFO(m_vecForce) ),
+	RecvPropVector( RECVINFO( m_vecRagdollVelocity ) )
 END_RECV_TABLE()
 
-//-----------------------------------------------------------------------------
-// Purpose: 
-// Input  :  - 
-//-----------------------------------------------------------------------------
 C_SDKRagdoll::C_SDKRagdoll()
 {
-	m_iPlayerIndex = SDK_PLAYER_INDEX_NONE;
-	m_fDeathTime = -1;
-	m_bFadingOut = false;
-	m_bOnGround = false;
-	m_iDamageCustom = 0;
-	m_nForceBone = -1;
-	m_flDeathAnimEndTime = 0.0f;
+
 }
 
-//-----------------------------------------------------------------------------
-// Purpose: 
-// Input  :  - 
-//-----------------------------------------------------------------------------
 C_SDKRagdoll::~C_SDKRagdoll()
 {
 	PhysCleanupFrictionSounds( this );
+
+	if ( m_hPlayer )
+		m_hPlayer->CreateModelInstance();
 }
 
-//-----------------------------------------------------------------------------
-// Purpose: 
-// Input  : *pSourceEntity - 
-//-----------------------------------------------------------------------------
 void C_SDKRagdoll::Interp_Copy( C_BaseAnimatingOverlay *pSourceEntity )
 {
 	if ( !pSourceEntity )
@@ -272,10 +225,10 @@ void C_SDKRagdoll::Interp_Copy( C_BaseAnimatingOverlay *pSourceEntity )
 	{
 		VarMapEntry_t *pDestEntry = &pDest->m_Entries[i];
 		const char *pszName = pDestEntry->watcher->GetDebugName();
-		for (int j = 0; j < pSrc->m_Entries.Count(); j++)
+		for ( int j=0; j < pSrc->m_Entries.Count(); j++ )
 		{
 			VarMapEntry_t *pSrcEntry = &pSrc->m_Entries[j];
-			if (!Q_strcmp(pSrcEntry->watcher->GetDebugName(), pszName))
+			if ( !Q_strcmp( pSrcEntry->watcher->GetDebugName(), pszName ) )
 			{
 				pDestEntry->watcher->Copy( pSrcEntry->watcher );
 				break;
@@ -284,129 +237,62 @@ void C_SDKRagdoll::Interp_Copy( C_BaseAnimatingOverlay *pSourceEntity )
 	}
 }
 
-//-----------------------------------------------------------------------------
-// Purpose: Setup vertex weights for drawing
-//-----------------------------------------------------------------------------
-void C_SDKRagdoll::SetupWeights( const matrix3x4_t *pBoneToWorld, int nFlexWeightCount, float *pFlexWeights, float *pFlexDelayedWeights )
+void FX_BloodSpray( const Vector &origin, const Vector &normal, float scale, unsigned char r, unsigned char g, unsigned char b, int flags );
+void C_SDKRagdoll::ImpactTrace( trace_t *pTrace, int iDamageType, const char *pCustomImpactName )
 {
-	// While we're dying, we want to mimic the facial animation of the player. Once they're dead, we just stay as we are.
-	EHANDLE hPlayer = GetPlayerHandle();
-	if ( ( hPlayer && hPlayer->IsAlive()) || !hPlayer )
-	{
-		BaseClass::SetupWeights( pBoneToWorld, nFlexWeightCount, pFlexWeights, pFlexDelayedWeights );
-	}
-	else if ( hPlayer )
-	{
-		hPlayer->SetupWeights( pBoneToWorld, nFlexWeightCount, pFlexWeights, pFlexDelayedWeights );
-	}
-}
-
-//-----------------------------------------------------------------------------
-// Purpose: 
-// Input  : *pTrace - 
-//			iDamageType - 
-//			*pCustomImpactName - 
-//-----------------------------------------------------------------------------
-void C_SDKRagdoll::ImpactTrace(trace_t *pTrace, int iDamageType, const char *pCustomImpactName)
-{
-	VPROF( "C_SDKRagdoll::ImpactTrace" );
 	IPhysicsObject *pPhysicsObject = VPhysicsGetObject();
+
 	if( !pPhysicsObject )
 		return;
 
-	Vector vecDir;
-	VectorSubtract( pTrace->endpos, pTrace->startpos, vecDir );
+	Vector dir = pTrace->endpos - pTrace->startpos;
 
 	if ( iDamageType == DMG_BLAST )
 	{
-		// Adjust the impact strength and apply the force at the center of mass.
-		vecDir *= 4000;
-		pPhysicsObject->ApplyForceCenter( vecDir );
+		dir *= 4000;  // adjust impact strenght
+				
+		// apply force at object mass center
+		pPhysicsObject->ApplyForceCenter( dir );
 	}
 	else
 	{
-		// Find the apporx. impact point.
-		Vector vecHitPos;  
-		VectorMA( pTrace->startpos, pTrace->fraction, vecDir, vecHitPos );
-		VectorNormalize( vecDir );
+		Vector hitpos;  
+
+		VectorMA( pTrace->startpos, pTrace->fraction, dir, hitpos );
+		VectorNormalize( dir );
 
 		// Blood spray!
-		FX_BloodSpray( vecHitPos, vecDir, 3, 72, 0, 0, FX_BLOODSPRAY_ALL  );
+		FX_BloodSpray( hitpos, dir, 3, 72, 0, 0, FX_BLOODSPRAY_ALL  );
 
-		// Adjust the impact strength and apply the force at the impact point..
-		vecDir *= 4000;
-		pPhysicsObject->ApplyForceOffset( vecDir, vecHitPos );
+		dir *= 4000;  // adjust impact strenght
 
+		// apply force where we hit it
+		pPhysicsObject->ApplyForceOffset( dir, hitpos );	
 		//Tony; throw in some bleeds! - just use a generic value for damage.
-		TraceBleed(40, vecDir, pTrace, iDamageType);
+		TraceBleed( 40, dir, pTrace, iDamageType );
 	}
 
 	m_pRagdoll->ResetRagdollSleepAfterTime();
 }
 
-// ---------------------------------------------------------------------------- -
-// Purpose: 
-// Input  : flInterval - 
-// Output : float
-//-----------------------------------------------------------------------------
-float C_SDKRagdoll::FrameAdvance( float flInterval )
+
+void C_SDKRagdoll::CreateSDKRagdoll( void )
 {
-	float flRet = BaseClass::FrameAdvance( flInterval );
-
-	// Turn into a ragdoll once animation is over.
-	if ( m_flDeathAnimEndTime != 0.0f && gpGlobals->curtime >= m_flDeathAnimEndTime )
-	{
-		if ( cl_ragdoll_physics_enable.GetBool() )
-		{
-			m_flDeathAnimEndTime = 0.0f;
-
-			// Make us a ragdoll.
-			m_nRenderFX = kRenderFxRagdoll;
-
-			matrix3x4_t boneDelta0[MAXSTUDIOBONES];
-			matrix3x4_t boneDelta1[MAXSTUDIOBONES];
-			matrix3x4_t currentBones[MAXSTUDIOBONES];
-			const float boneDt = 0.1f;
-
-			GetRagdollInitBoneArrays( boneDelta0, boneDelta1, currentBones, boneDt );
-			InitAsClientRagdoll( boneDelta0, boneDelta1, currentBones, boneDt, false );
-			SetAbsVelocity( vec3_origin );
-		}
-		else
-		{
-			ClientLeafSystem()->SetRenderGroup( GetRenderHandle(), RENDER_GROUP_TRANSLUCENT_ENTITY );
-		}
-	}
-
-	return flRet;
-}
-
-//-----------------------------------------------------------------------------
-// Purpose: 
-// Input  :  - 
-//-----------------------------------------------------------------------------
-void C_SDKRagdoll::CreateSDKRagdoll(void)
-{
-	// Get the player.
-	C_SDKPlayer *pPlayer = NULL;
-	EHANDLE hPlayer = GetPlayerHandle();
-	if ( hPlayer )
-		pPlayer = ToSDKPlayer( hPlayer.Get() );
-
-#ifdef _DEBUG
-	DevMsg( 2, "CreateSDKRagdoll %d %d\n", gpGlobals->framecount, pPlayer ? pPlayer->entindex() : 0 );
-#endif
-
+	// First, initialize all our data. If we have the player's entity on our client,
+	// then we can make ourselves start out exactly where the player is.
+	C_SDKPlayer *pPlayer = dynamic_cast< C_SDKPlayer* >( m_hPlayer.Get() );
+	
 	if ( pPlayer && !pPlayer->IsDormant() )
 	{
-		// Move my current model instance to the ragdoll's so decals are preserved.
+		// move my current model instance to the ragdoll's so decals are preserved.
 		pPlayer->SnatchModelInstance( this );
 
 		VarMapping_t *varMap = GetVarMapping();
 
 		// Copy all the interpolated vars from the player entity.
-		// The entity uses the interpolated history to get bone velocity.		
-		if ( !pPlayer->IsLocalPlayer() && pPlayer->IsInterpolationEnabled() )
+		// The entity uses the interpolated history to get bone velocity.
+		bool bRemotePlayer = (pPlayer != C_BasePlayer::GetLocalPlayer());			
+		if ( bRemotePlayer )
 		{
 			Interp_Copy( pPlayer );
 
@@ -421,242 +307,127 @@ void C_SDKRagdoll::CreateSDKRagdoll(void)
 		{
 			// This is the local player, so set them in a default
 			// pose and slam their velocity, angles and origin
-			SetAbsOrigin( pPlayer->GetRenderOrigin() );
+			SetAbsOrigin( m_vecRagdollOrigin );
+			
 			SetAbsAngles( pPlayer->GetRenderAngles() );
+
 			SetAbsVelocity( m_vecRagdollVelocity );
 
-			// Hack! Find a neutral standing pose or use the idle.
-			int iSeq = LookupSequence( "RagdollSpawn" );
+			int iSeq = pPlayer->GetSequence();
 			if ( iSeq == -1 )
 			{
-				Assert( false );
+				Assert( false );	// missing walk_lower?
 				iSeq = 0;
-			}	
-
-			SetSequence( iSeq );
+			}
+			
+			SetSequence( iSeq );	// walk_lower, basic pose
 			SetCycle( 0.0 );
 
 			Interp_Reset( varMap );
-		}
-
-		m_nBody = pPlayer->GetBody();
+		}		
 	}
 	else
 	{
-		// Overwrite network origin so later interpolation will use this position.
+		// overwrite network origin so later interpolation will
+		// use this position
 		SetNetworkOrigin( m_vecRagdollOrigin );
+
 		SetAbsOrigin( m_vecRagdollOrigin );
 		SetAbsVelocity( m_vecRagdollVelocity );
 
 		Interp_Reset( GetVarMapping() );
+		
 	}
 
-	// Turn it into a ragdoll.
-	if ( cl_ragdoll_physics_enable.GetBool() )
-	{
-		// Make us a ragdoll..
-		m_nRenderFX = kRenderFxRagdoll;
+	SetModelIndex( m_nModelIndex );
 
-		matrix3x4_t boneDelta0[MAXSTUDIOBONES];
-		matrix3x4_t boneDelta1[MAXSTUDIOBONES];
-		matrix3x4_t currentBones[MAXSTUDIOBONES];
-		const float boneDt = 0.05f;
+	// Make us a ragdoll..
+	m_nRenderFX = kRenderFxRagdoll;
 
-		// We have to make sure that we're initting this client ragdoll off of the same model.
-		// GetRagdollInitBoneArrays uses the *player* Hdr, which may be a different model than
-		// the ragdoll Hdr, if we try to create a ragdoll in the same frame that the player
-		// changes their player model.
-		CStudioHdr *pRagdollHdr = GetModelPtr();
-		CStudioHdr *pPlayerHdr = NULL;
-		if ( pPlayer )
-			pPlayerHdr = pPlayer->GetModelPtr();
+	matrix3x4_t boneDelta0[MAXSTUDIOBONES];
+	matrix3x4_t boneDelta1[MAXSTUDIOBONES];
+	matrix3x4_t currentBones[MAXSTUDIOBONES];
+	const float boneDt = 0.05f;
 
-		bool bChangedModel = false;
-
-		if ( pRagdollHdr && pPlayerHdr )
-		{
-			bChangedModel = pRagdollHdr->GetVirtualModel() != pPlayerHdr->GetVirtualModel();
-			Assert( !bChangedModel && "C_SDKRagdoll::CreateSDKRagdoll: Trying to create ragdoll with a different model than the player it's based on" );
-		}
-
-		if ( pPlayer && !pPlayer->IsDormant() && !bChangedModel )
-			pPlayer->GetRagdollInitBoneArrays( boneDelta0, boneDelta1, currentBones, boneDt );
-		else
-			GetRagdollInitBoneArrays( boneDelta0, boneDelta1, currentBones, boneDt );
-
-			InitAsClientRagdoll( boneDelta0, boneDelta1, currentBones, boneDt );
-	}
+	if ( pPlayer && !pPlayer->IsDormant() )
+		pPlayer->GetRagdollInitBoneArrays( boneDelta0, boneDelta1, currentBones, boneDt );
 	else
-		ClientLeafSystem()->SetRenderGroup( GetRenderHandle(), RENDER_GROUP_TRANSLUCENT_ENTITY );
+		GetRagdollInitBoneArrays( boneDelta0, boneDelta1, currentBones, boneDt );
 
-	if ( pPlayer )
-		pPlayer->MoveBoneAttachments( this );
-
-	// Fade out the ragdoll in a while
-	StartFadeOut( cl_ragdoll_fade_time.GetFloat() );
-	SetNextClientThink( gpGlobals->curtime + cl_ragdoll_fade_time.GetFloat() * 0.33f );
+	InitAsClientRagdoll( boneDelta0, boneDelta1, currentBones, boneDt );
 }
 
-//-----------------------------------------------------------------------------
-// Purpose: 
-// Input  : type - 
-//-----------------------------------------------------------------------------
+
 void C_SDKRagdoll::OnDataChanged( DataUpdateType_t type )
 {
 	BaseClass::OnDataChanged( type );
 
 	if ( type == DATA_UPDATE_CREATED )
-	{
-		bool bCreateRagdoll = true;
-
-		// Get the player.
-		EHANDLE hPlayer = GetPlayerHandle();
-		if ( hPlayer )
-		{
-			// If we're getting the initial update for this player (e.g., after resetting entities after
-			//  lots of packet loss, then don't create gibs, ragdolls if the player and it's gib/ragdoll
-			//  both show up on same frame.
-			if ( abs( hPlayer->GetCreationTick() - gpGlobals->tickcount ) < TIME_TO_TICKS( 1.0f ) )
-				bCreateRagdoll = false;
-		}
-		else if ( C_BasePlayer::GetLocalPlayer() )
-		{
-			// Ditto for recreation of the local player
-			if ( abs( C_BasePlayer::GetLocalPlayer()->GetCreationTick() - gpGlobals->tickcount ) < TIME_TO_TICKS( 1.0f ) )
-				bCreateRagdoll = false;
-		}
-
-		if ( bCreateRagdoll )
-			CreateSDKRagdoll();
-	}
-	else 
-	{
-		if ( !cl_ragdoll_physics_enable.GetBool() )
-			// Don't let it set us back to a ragdoll with data from the server.
-			m_nRenderFX = kRenderFxNone;
-	}
+		CreateSDKRagdoll();
 }
 
-//-----------------------------------------------------------------------------
-// Purpose: 
-// Input  :  - 
-// Output : IRagdoll*
-//-----------------------------------------------------------------------------
 IRagdoll* C_SDKRagdoll::GetIRagdoll() const
 {
 	return m_pRagdoll;
 }
 
-//-----------------------------------------------------------------------------
-// Purpose: 
-// Input  :  - 
-// Output : Returns true on success, false on failure.
-//-----------------------------------------------------------------------------
-bool C_SDKRagdoll::IsRagdollVisible()
+void C_SDKRagdoll::UpdateOnRemove( void )
 {
-	Vector vMins = Vector(-1,-1,-1);	//WorldAlignMins();
-	Vector vMaxs = Vector(1,1,1);	//WorldAlignMaxs();
-		
-	Vector origin = GetAbsOrigin();
-	
-	if( !engine->IsBoxInViewCluster( vMins + origin, vMaxs + origin) )
-		return false;
-	else if( engine->CullBox( vMins + origin, vMaxs + origin ) )
-		return false;
+	VPhysicsSetObject( NULL );
 
-	return true;
+	BaseClass::UpdateOnRemove();
 }
 
-void C_SDKRagdoll::ClientThink( void )
+//-----------------------------------------------------------------------------
+// Purpose: clear out any face/eye values stored in the material system
+//-----------------------------------------------------------------------------
+void C_SDKRagdoll::SetupWeights( const matrix3x4_t *pBoneToWorld, int nFlexWeightCount, float *pFlexWeights, float *pFlexDelayedWeights )
 {
-	SetNextClientThink( CLIENT_THINK_ALWAYS );
+	BaseClass::SetupWeights( pBoneToWorld, nFlexWeightCount, pFlexWeights, pFlexDelayedWeights );
 
-	if ( m_bFadingOut == true )
-	{
-		int iAlpha = GetRenderColor().a;
-		int iFadeSpeed = 600.0f;
+	static float destweight[128];
+	static bool bIsInited = false;
 
-		iAlpha = max( iAlpha - ( iFadeSpeed * gpGlobals->frametime ), 0 );
-
-		SetRenderMode( kRenderTransAlpha );
-		SetRenderColorA( iAlpha );
-
-		if ( iAlpha == 0 )
-			EndFadeOut(); // remove clientside ragdoll
-
+	CStudioHdr *hdr = GetModelPtr();
+	if ( !hdr )
 		return;
+
+	int nFlexDescCount = hdr->numflexdesc();
+	if ( nFlexDescCount )
+	{
+		Assert( !pFlexDelayedWeights );
+		memset( pFlexWeights, 0, nFlexWeightCount * sizeof(float) );
 	}
 
-	// if the player is looking at us, delay the fade
-	if ( IsRagdollVisible() )
+	if ( m_iEyeAttachment > 0 )
 	{
-		if ( cl_ragdoll_forcefade.GetBool() )
+		matrix3x4_t attToWorld;
+		if ( GetAttachment( m_iEyeAttachment, attToWorld ) )
 		{
-			m_bFadingOut = true;
-			float flDelay = cl_ragdoll_fade_time.GetFloat() * 0.33f;
-			m_fDeathTime = gpGlobals->curtime + flDelay;
-
-			// If we were just fully healed, remove all decals
-			RemoveAllDecals();
+			Vector local, tmp;
+			local.Init( 1000.0f, 0.0f, 0.0f );
+			VectorTransform( local, attToWorld, tmp );
+			modelrender->SetViewTarget( GetModelPtr(), GetBody(), tmp );
 		}
-
-		StartFadeOut( cl_ragdoll_fade_time.GetFloat() * 0.33f );
-		return;
 	}
-
-	if ( m_fDeathTime > gpGlobals->curtime )
-		return;
-
-	EndFadeOut(); // remove clientside ragdoll
 }
 
-void C_SDKRagdoll::StartFadeOut( float fDelay )
-{
-	if ( !cl_ragdoll_forcefade.GetBool() )
-		m_fDeathTime = gpGlobals->curtime + fDelay;
-
-	SetNextClientThink( CLIENT_THINK_ALWAYS );
-}
-
-
-void C_SDKRagdoll::EndFadeOut()
-{
-	SetNextClientThink( CLIENT_THINK_NEVER );
-	ClearRagdoll();
-	SetRenderMode( kRenderNone );
-	UpdateVisibility();
-}
-
-//-----------------------------------------------------------------------------
-// Purpose: 
-// Input  : bCopyEntity - 
-// Output : C_BaseAnimating *
-//-----------------------------------------------------------------------------
 C_BaseAnimating *C_SDKPlayer::BecomeRagdollOnClient()
 {
-	// Let the C_SDKRagdoll take care of this.
+	// Let the C_SDKRagdoll entity do this.
 	return NULL;
 }
 
-//-----------------------------------------------------------------------------
-// Purpose: 
-// Input  :  - 
-// Output : IRagdoll*
-//-----------------------------------------------------------------------------
 IRagdoll* C_SDKPlayer::GetRepresentativeRagdoll() const
 {
 	if ( m_hRagdoll.Get() )
 	{
-		C_SDKRagdoll *pRagdoll = static_cast<C_SDKRagdoll*>(m_hRagdoll.Get());
-		if ( !pRagdoll )
-			return NULL;
+		C_SDKRagdoll *pRagdoll = (C_SDKRagdoll*)m_hRagdoll.Get();
 
 		return pRagdoll->GetIRagdoll();
 	}
 	else
-	{
 		return NULL;
-	}
 }
 
 C_SDKPlayer::C_SDKPlayer() : m_iv_angEyeAngles( "C_SDKPlayer::m_iv_angEyeAngles" )

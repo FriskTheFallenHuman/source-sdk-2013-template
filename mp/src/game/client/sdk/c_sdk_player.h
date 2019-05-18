@@ -59,11 +59,8 @@ public:
 
 	CWeaponSDKBase *GetActiveSDKWeapon() const;
 
-	// Ragdolls.
-	virtual C_BaseAnimating *BecomeRagdollOnClient();
-	virtual IRagdoll		*GetRepresentativeRagdoll() const;
-	EHANDLE	m_hRagdoll;
-	Vector m_vecRagdollVelocity;
+	virtual C_BaseAnimating * BecomeRagdollOnClient();
+	virtual IRagdoll* GetRepresentativeRagdoll() const;
 
 	void FireBullet( 
 		Vector vecSrc, 
@@ -136,6 +133,8 @@ public: // Public Variables
 	CInterpolatedVar< QAngle >	m_iv_angEyeAngles;
 
 	CNetworkVar( int, m_iShotsFired );	// number of shots fired recently
+
+	EHANDLE	m_hRagdoll;
 
 	int	m_headYawPoseParam;
 	int	m_headPitchPoseParam;
