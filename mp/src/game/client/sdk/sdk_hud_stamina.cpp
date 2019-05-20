@@ -29,7 +29,7 @@ DECLARE_HUDELEMENT( CHudStamina );
 //-----------------------------------------------------------------------------
 // Purpose: Constructor
 //-----------------------------------------------------------------------------
-CHudStamina::CHudStamina( const char *pElementName ) : CHudElement( pElementName ), BaseClass( NULL, "HudSuitPower" )
+CHudStamina::CHudStamina( const char *pElementName ) : CHudElement( pElementName ), BaseClass( NULL, "HudStamina" )
 {
 	vgui::Panel *pParent = g_pClientMode->GetViewport();
 	SetParent( pParent );
@@ -89,12 +89,12 @@ void CHudStamina::OnThink( void )
 	if ( flCurrentStamina >= 100.0f && m_flStamina < 100.0f )
 	{
 		// we've reached max stamina
-		g_pClientMode->GetViewportAnimationController()->StartAnimationSequence("SuitStaminaMax");
+		g_pClientMode->GetViewportAnimationController()->StartAnimationSequence("StaminaMax");
 	}
 	else if ( flCurrentStamina < 100.0f && (m_flStamina >= 100.0f || m_flStamina == STAMINA_INIT) )
 	{
 		// we've lost stamina
-		g_pClientMode->GetViewportAnimationController()->StartAnimationSequence("SuitStaminaNotMax");
+		g_pClientMode->GetViewportAnimationController()->StartAnimationSequence("StaminaNotMax");
 	}
 	m_flStamina = flCurrentStamina;
 }
@@ -124,11 +124,11 @@ void CHudStamina::Paint()
 		{
 			if (lowStamina)
 			{
-				g_pClientMode->GetViewportAnimationController()->StartAnimationSequence("SuitStaminaDecreasedBelow25");
+				g_pClientMode->GetViewportAnimationController()->StartAnimationSequence("StaminaDecreasedBelow25");
 			}
 			else
 			{
-				g_pClientMode->GetViewportAnimationController()->StartAnimationSequence("SuitStaminaIncreasedAbove25");
+				g_pClientMode->GetViewportAnimationController()->StartAnimationSequence("StaminaIncreasedAbove25");
 			}
 			m_flStaminaLow = lowStamina;
 		}

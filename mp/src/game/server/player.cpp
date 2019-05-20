@@ -6052,6 +6052,8 @@ void CBasePlayer::ImpulseCommands( )
 	m_nImpulse = 0;
 }
 
+#ifdef HL2_DLL
+
 #ifdef HL2_EPISODIC
 
 //-----------------------------------------------------------------------------
@@ -6167,7 +6169,7 @@ void CC_CH_CreateAirboat( void )
 }
 
 static ConCommand ch_createairboat( "ch_createairboat", CC_CH_CreateAirboat, "Spawn airboat in front of the player.", FCVAR_CHEAT );
-
+#endif // HL2_DLL
 
 //=========================================================
 //=========================================================
@@ -6204,6 +6206,7 @@ void CBasePlayer::CheatImpulseCommands( int iImpulse )
 		GiveNamedItem( "weapon_cubemap" );
 		break;
 
+#ifdef HL2_DLL
 	case 82:
 		// Cheat to create a jeep in front of the player
 		CreateJeep( this );
@@ -6213,12 +6216,14 @@ void CBasePlayer::CheatImpulseCommands( int iImpulse )
 		// Cheat to create a airboat in front of the player
 		CreateAirboat( this );
 		break;
+#endif // HL2_DLL
 
 	case 101:
 		gEvilImpulse101 = true;
 
 		EquipSuit();
 
+#ifdef HL2_DLL
 		// Give the player everything!
 		GiveAmmo( 255,	"Pistol");
 		GiveAmmo( 255,	"AR2");
@@ -6247,6 +6252,8 @@ void CBasePlayer::CheatImpulseCommands( int iImpulse )
 #ifdef HL2_EPISODIC
 		// GiveNamedItem( "weapon_magnade" );
 #endif
+#endif // HL2_DLL
+
 		if ( GetHealth() < 100 )
 		{
 			TakeHealth( 25, DMG_GENERIC );

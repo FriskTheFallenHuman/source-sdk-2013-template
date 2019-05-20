@@ -45,13 +45,9 @@ LINK_ENTITY_TO_CLASS( weapon_sdk_base, CWeaponSDKBase );
  
  
 #ifdef GAME_DLL
- 
-	BEGIN_DATADESC( CWeaponSDKBase )
- 
-		// New weapon Think and Touch Functions go here..
- 
-	END_DATADESC()
- 
+BEGIN_DATADESC( CWeaponSDKBase )
+	// New weapon Think and Touch Functions go here..
+END_DATADESC()
 #endif
  
 #ifdef CLIENT_DLL
@@ -432,5 +428,106 @@ void CWeaponSDKBase::SetDieThink( bool bDie )
 void CWeaponSDKBase::Die( void )
 {
 	UTIL_Remove( this );
+}
+#endif
+
+#ifdef CLIENT_DLL
+ConVar cl_bobcycle( "cl_bobcycle", "0.45", 0 , "How fast the bob cycles", true, 0.01f, false, 0.0f );
+ConVar cl_bobup( "cl_bobup", "0.5", 0 , "Don't change...", true, 0.01f, true, 0.99f );
+ConVar cl_bobvertscale( "cl_bobvertscale", "0.6", 0, "Vertical scale" ); // Def. is 0.1
+ConVar cl_boblatscale( "cl_boblatscale", "0.8", 0, "Lateral scale" );
+ConVar cl_bobenable( "cl_bobenable", "1" );
+
+float g_lateralBob;
+float g_verticalBob;
+
+float CWeaponSDKBase::CalcViewmodelBob()
+{
+    static float	bobtime;
+    static float	lastbobtime;
+    float	cycle;
+
+    float	bobup = cl_bobup.GetFloat();
+    float	bobcycle = cl_bobcycle.GetFloat();
+
+    C_BasePlayer* player = GetPlayerOwner();
+
+    //NOTENOTE: For now, let this cycle continue when in the air, because it snaps badly without it
+    if (!player || !gpGlobals->frametime || bobcycle <= 0.0f || bobup <= 0.0f || bobup >= 1.0f )
+        return 0.0f;
+
+    float speed = player->GetLocalVelocity().Length2D();
+
+    speed = clamp( speed, -320, 320 );
+
+    float bob_offset = RemapVal( speed, 0, 320, 0.0f, 1.0f );
+    
+    bobtime += ( gpGlobals->curtime - lastbobtime ) * bob_offset;
+    lastbobtime = gpGlobals->curtime;
+
+    //Calculate the vertical bob
+    cycle = bobtime - (int)(bobtime/bobcycle)*bobcycle;
+    cycle /= bobcycle;
+
+    if ( cycle < bobup )
+        cycle = M_PI * cycle / bobup;
+    else
+        cycle = M_PI + M_PI*(cycle-bobup)/(1.0 - bobup);
+   
+    g_verticalBob = speed*0.005f;
+    g_verticalBob = g_verticalBob*0.3 + g_verticalBob*0.7*sin(cycle);
+
+    g_verticalBob = clamp( g_verticalBob, -7.0f, 4.0f );
+
+    //Calculate the lateral bob
+    cycle = bobtime - (int)(bobtime/bobcycle*2)*bobcycle*2;
+    cycle /= bobcycle*2;
+
+    if ( cycle < bobup )
+        cycle = M_PI * cycle / bobup;
+    else
+        cycle = M_PI + M_PI*(cycle-bobup)/(1.0 - bobup);
+
+    g_lateralBob = speed*0.005f;
+    g_lateralBob = g_lateralBob*0.3 + g_lateralBob*0.7*sin(cycle);
+    g_lateralBob = clamp( g_lateralBob, -7.0f, 4.0f );
+    
+    //NOTENOTE: We don't use this return value in our case (need to restructure the calculation function setup!)
+    return 0.0f;
+}
+
+void CWeaponSDKBase::AddViewmodelBob( CBaseViewModel *viewmodel, Vector& origin, QAngle& angles )
+{
+    if ( !cl_bobenable.GetBool() )
+        return;
+
+    Vector	forward, right;
+    AngleVectors( angles, &forward, &right, NULL );
+
+    CalcViewmodelBob();
+
+    // Apply bob, but scaled down to 40%
+    VectorMA( origin, g_verticalBob * cl_bobvertscale.GetFloat(), forward, origin );
+    
+    // Z bob a bit more
+    origin[2] += g_verticalBob * 0.1f;
+    
+    // bob the angles
+    angles[ ROLL ]	+= g_verticalBob * 0.5f;
+    angles[ PITCH ]	-= g_verticalBob * 0.4f;
+
+    angles[ YAW ]	-= g_lateralBob  * 0.3f;
+
+    VectorMA( origin, g_lateralBob * cl_boblatscale.GetFloat(), right, origin );
+}
+#else
+// Server stubs
+float CWeaponSDKBase::CalcViewmodelBob()
+{
+    return 0.0f;
+}
+
+void CWeaponSDKBase::AddViewmodelBob( CBaseViewModel *viewmodel, Vector &origin, QAngle &angles )
+{
 }
 #endif

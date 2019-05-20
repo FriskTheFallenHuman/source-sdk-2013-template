@@ -45,7 +45,7 @@ DECLARE_HUDELEMENT( CSDKHudArmor );
 //-----------------------------------------------------------------------------
 // Purpose: Constructor
 //-----------------------------------------------------------------------------
-CSDKHudArmor::CSDKHudArmor( const char *pElementName ) : CHudElement( pElementName ), CHudNumericDisplay(NULL, "HudSuit")
+CSDKHudArmor::CSDKHudArmor( const char *pElementName ) : CHudElement( pElementName ), CHudNumericDisplay(NULL, "HudArmor")
 {
 	SetHiddenBits( HIDEHUD_HEALTH | HIDEHUD_PLAYERDEAD | HIDEHUD_NEEDSUIT );
 }
@@ -92,17 +92,17 @@ void CSDKHudArmor::OnThink( void )
 
 	if ( !newArmor )
 	{
-	 	g_pClientMode->GetViewportAnimationController()->StartAnimationSequence("SuitPowerZero");
+	 	g_pClientMode->GetViewportAnimationController()->StartAnimationSequence("ArmorZero");
 	}
 	else if ( newArmor < m_iArmor )
 	{
 		// battery power has decreased, so play the damaged animation
-		g_pClientMode->GetViewportAnimationController()->StartAnimationSequence("SuitDamageTaken");
+		g_pClientMode->GetViewportAnimationController()->StartAnimationSequence("ArmorDamageTaken");
 
 		// play an extra animation if we're super low
 		if ( newArmor < 20 )
 		{
-			g_pClientMode->GetViewportAnimationController()->StartAnimationSequence("SuitArmorLow");
+			g_pClientMode->GetViewportAnimationController()->StartAnimationSequence("ArmorLow");
 		}
 	}
 	else
@@ -110,11 +110,11 @@ void CSDKHudArmor::OnThink( void )
 		// battery power has increased (if we had no previous armor, or if we just loaded the game, don't use alert state)
 		if ( m_iArmor == INIT_ARMOR || m_iArmor == 0 || newArmor >= 20)
 		{
-			g_pClientMode->GetViewportAnimationController()->StartAnimationSequence("SuitPowerIncreasedAbove20");
+			g_pClientMode->GetViewportAnimationController()->StartAnimationSequence("ArmorIncreasedAbove20");
 		}
 		else
 		{
-			g_pClientMode->GetViewportAnimationController()->StartAnimationSequence("SuitPowerIncreasedBelow20");
+			g_pClientMode->GetViewportAnimationController()->StartAnimationSequence("ArmorIncreasedBelow20");
 		}
 	}
 

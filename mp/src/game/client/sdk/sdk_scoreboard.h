@@ -5,8 +5,8 @@
 // $NoKeywords: $
 //=============================================================================//
 
-#ifndef CSDK_SCOREBOARD_H
-#define CSDK_SCOREBOARD_H
+#ifndef SDK_SCOREBOARD_H
+#define SDK_SCOREBOARD_H
 #ifdef _WIN32
 #pragma once
 #endif
@@ -19,18 +19,14 @@
 class CSDKScoreboard : public CClientScoreBoardDialog
 {
 private:
-	DECLARE_CLASS_SIMPLE(CSDKScoreboard, CClientScoreBoardDialog);
-	
+	DECLARE_CLASS_SIMPLE( CSDKScoreboard, CClientScoreBoardDialog );
+
 public:
-	CSDKScoreboard(IViewPort *pViewPort);
+	CSDKScoreboard( IViewPort *pViewPort );
 	~CSDKScoreboard();
 
-
-protected:
-	// scoreboard overrides
-	virtual void InitScoreboardSections();
-	virtual void UpdateTeamInfo();
-	virtual void UpdatePlayerInfo();
+	virtual void Reset();
+	virtual void Update();
 
 	// vgui overrides for rounded corner background
 	virtual void PaintBackground();
@@ -38,15 +34,57 @@ protected:
 	virtual void ApplySchemeSettings( vgui::IScheme *pScheme );
 
 private:
-	virtual void AddHeader(); // add the start header of the scoreboard
-	virtual void AddSection(int teamType, int teamNumber); // add a new section header for a team
 
-	int GetSectionFromTeamNumber( int teamNumber );
+	void UpdateItemVisibiity();
+	void InitPlayerList( vgui::SectionedListPanel *pPlayerList, int teamNumber );
+	void UpdateTeamInfo();
+	void UpdatePlayerList();
+	void UpdateSpectatorList();
+	bool GetPlayerScoreInfo( int playerIndex, KeyValues *outPlayerInfo );
+
+	bool ShouldShowAsSpectator( int iPlayerIndex );
+	void FireGameEvent( IGameEvent *event );
+
+	static bool SDKPlayerSortFunc( vgui::SectionedListPanel *list, int itemID1, int itemID2 );
 
 	// rounded corners
-	Color					 m_bgColor;
-	Color					 m_borderColor;
+	Color m_bgColor;
+	Color m_borderColor;
+
+	int m_iImageDead;
+
+	int m_iStoredScoreboardWidth; // Store the full scoreboard width.
+
+	// player lists
+	vgui::SectionedListPanel *m_pPlayerListDM;	//Deathmatch Player list.
+	vgui::SectionedListPanel *m_pPlayerListRed;
+	vgui::SectionedListPanel *m_pPlayerListBlue;
+
+	CPanelAnimationVarAliasType( int, m_iStatusWidth, "status_width", "35", "proportional_int" );
+	CPanelAnimationVarAliasType( int, m_iFragsWidth, "frags_width", "30", "proportional_int" );
+
+	vgui::Label	*m_pPlayerCountLabel_DM;
+	vgui::Label *m_pScoreHeader_DM;
+	vgui::Label	*m_pDeathsHeader_DM;
+	vgui::Label	*m_pPingHeader_DM;
+	vgui::Label	*m_pPingLabel_DM;
+
+	vgui::Label	*m_pPlayerCountLabel_Red;
+	vgui::Label	*m_pScoreHeader_Red;
+	vgui::Label	*m_pScoreLabel_Red;
+	vgui::Label	*m_pDeathsHeader_Red;
+	vgui::Label	*m_pPingHeader_Red;
+	vgui::Label	*m_pPingLabel_Red;
+
+	vgui::Label	*m_pPlayerCountLabel_Blue;
+	vgui::Label	*m_pScoreHeader_Blue;
+	vgui::Label	*m_pScoreLabel_Blue;
+	vgui::Label	*m_pDeathsHeader_Blue;
+	vgui::Label	*m_pPingHeader_Blue;
+	vgui::Label	*m_pPingLabel_Blue;
+
+	// Create the vertical line so we can hide it in single column mode.
+	vgui::ImagePanel *m_pVertLine;
 };
 
-
-#endif // CSDK_SCOREBOARD_H
+#endif // SDK_SCOREBOARD_H

@@ -29,9 +29,15 @@
 {
 	"player_death"
 	{
-		"userid"	"short"   	// user ID who died				
-		"attacker"	"short"	 	// user ID who killed
-		"weapon"	"string" 	// weapon name killed used
+		// this extends the original player_death 
+		"userid"				"short"		// user ID who died				
+		"attacker"				"short"		// user ID who killed
+		"weapon"				"string"	// weapon name killer used 
+		"weaponid"				"short"		// ID of weapon killed used
+		"damagebits"			"long"		// bits of type of damage
+		"customkill"			"short"		// type of custom kill
+		"assister"				"short"		// user ID of assister
+		"weapon_logclassname"	"string"	// weapon name that should be printed on the log
 	}
 	
 	"player_hurt"
@@ -58,7 +64,7 @@
 	
 	"achievement_earned"
 	{
-		"player"	"byte"		// entindex of the player
+		"player"		"byte"		// entindex of the player
 		"achievement"	"short"		// achievement ID
 	}
 }

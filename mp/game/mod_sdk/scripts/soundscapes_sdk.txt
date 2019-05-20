@@ -58,60 +58,6 @@
 //	SNDLVL_140dB	= 140,	// 0.2
 //	SNDLVL_150dB	= 150,	// 0.2
 
-// General soundscapes
-
-// This soundscape enables automatic dsp
-
-"automatic"
-{
-	"dsp"	"1"
-	"dsp_volume" "1.0"
-}
-// This soundscape enables automatic dsp at 50% mix - good if you have 
-// a lot of dialog that must be understood at any distance
-
-"automatic_dialog"
-{
-	"dsp"	"1"
-	"dsp_volume" "0.5"
-}
-
-// No DSP, no ambients
-"Nothing"
-{
-	"dsp"	"0"
-}
-
-"GenericIndoor"
-{
-	"dsp"	"1"
-	"playlooping"
-	{
-		"volume"	"1"
-		"pitch"		"100"
-		"wave"		"ambient/atmosphere/indoor2.wav"
-	}
-}
-
-"GenericOutdoor"
-{
-	"dsp"	"19"
-	"playlooping"
-	{
-		"volume"	"0.25"
-		"wave"		"ambient/atmosphere/indoor2.wav"
-	}
-
-	"playlooping"
-	{
-		"volume"	"0.15"
-		"wave"		"ambient/atmosphere/outdoor2.wav"
-		"pitch"		"100"
-		"position"	"0"
-	}
-}
-
-
 //=============================
 //=========exterior============
 //=============================

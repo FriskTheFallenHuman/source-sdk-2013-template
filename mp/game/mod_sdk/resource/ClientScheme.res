@@ -24,6 +24,8 @@ Scheme
 		"Black"				"0 0 0 196"
 		"TransparentBlack"	"0 0 0 196"
 		"TransparentLightBlack"	"0 0 0 90"
+		
+		"ClassInfoBackground"	"255 255 255 32"
 
 		"Blank"				"0 0 0 0"
 		"ForTesting"		"255 0 0 32"
@@ -535,28 +537,7 @@ Scheme
 				"yres"		"1 10000"
 			}
 		}
-		QuickInfo
-		{
-			"1"	[$X360]
-			{
-				"name"		"HL2cross"
-				"tall"		"57"
-				"weight"	"0"
-				"antialias" 	"1"
-				"additive"	"1"
-				"custom"	"1"
-			}
-			"1"	[$WIN32]
-			{
-				"name"		"HL2cross"
-				"tall"		"28" [!$OSX]
-				"tall"		"50" [$OSX]
-				"weight"	"0"
-				"antialias" "1"
-				"additive"	"1"
-				"custom"	"1" [!$OSX]
-			}
-		}
+
 		HudNumbers
 		{
 			"1"
@@ -570,18 +551,7 @@ Scheme
 				"custom"	"1"
 			}
 		}
-		SquadIcon	[$X360]
-		{
-			"1"
-			{
-				"name"		"HalfLife2"
-				"tall"		"50"
-				"weight"	"0"
-				"antialias" "1"
-				"additive"	"1"
-				"custom"	"1"
-			}
-		}
+
 		HudNumbersGlow
 		{
 			"1"
@@ -597,6 +567,7 @@ Scheme
 				"custom"	"1"
 			}
 		}
+
 		HudNumbersSmall
 		{
 			"1"
@@ -847,6 +818,17 @@ Scheme
 				"custom"	"1" [$OSX]
 			}
 		}
+		ClientTitleFontSmall
+		{
+			"1"
+			{
+				"name"  "Day of Defeat Logo" 
+				"tall"  "20"
+				"weight" "0"
+				"additive" "0"
+				"antialias" "1"
+			}
+		}
 		CreditsLogo
 		{
 			"1"
@@ -1045,19 +1027,20 @@ Scheme
 				"additive"	"0"
 			}
 		}
-		//Tony; using hl2mp font!
-		"SDKDeathIcons"
+
+		IconsSmall
 		{
-		   "1"
-		   {
-				"name"  "HL2MP" // csd.ttf
-				"tall"  "32"
+			"1"
+			{
+				"name"  "Counter-Strike" // Cstrike.ttf
+				"tall"  "20"
 				"weight" "0"
-				"additive" "1"
+				"additive" "0"
 				"antialias" "1"
 				"custom" "1" [$OSX]
-		   }
+			}
 		}
+		
 		// Used by scoreboard and spectator UI for names which don't map in the normal fashion
 		"DefaultVerySmallFallBack"
 		{
@@ -1089,7 +1072,6 @@ Scheme
 				"antialias"	"1"
 			}
 		}
-
 	}
 
 	//////////////////// BORDERS //////////////////////////////
@@ -1746,7 +1728,8 @@ Scheme
 	{
 		"1"		"resource/HALFLIFE2.ttf"
 		"2"		"resource/HL2crosshairs.ttf"
-		"2"		"resource/HL2MP.ttf"		//Tony; loading this for the death icons.
+		"3"		"resource/Cstrike.ttf"
+		"4"		"resource/DODlogo.ttf"
 	}
 
 }

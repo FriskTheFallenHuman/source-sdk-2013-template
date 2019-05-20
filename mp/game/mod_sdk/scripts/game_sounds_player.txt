@@ -122,6 +122,46 @@
 	}
 }
 
+"Player.Sprint"
+{
+	"channel"		"CHAN_BODY"
+	"volume"		"1"
+	"soundlevel"	"SNDLVL_65dB"
+	"pitch"		"PITCH_NORM"
+	"wave"		"player/sprint.wav"
+}
+
+
+"Player.Jump"
+{
+	"channel"		"CHAN_BODY"
+	"volume"		"VOL_NORM"
+	"soundlevel"		"SNDLVL_65dB"
+	"pitch"			"PITCH_NORM"
+
+	"rndwave"
+	{
+		"wave"		"player/jumplanding2.wav"
+		"wave"		"player/jumplanding3.wav"
+		"wave"		"player/jumplanding4.wav"
+	}
+}
+
+"Player.JumpLanding"
+{
+	"channel"		"CHAN_BODY"
+	"volume"		"VOL_NORM"
+	"soundlevel"		"SNDLVL_65dB"
+	"pitch"			"PITCH_NORM"
+
+	"rndwave"
+	{
+		"wave"		"player/land2.wav"
+		"wave"		"player/land3.wav"
+		"wave"		"player/land4.wav"
+	}
+}
+
 "Player.FallGib"
 {
 	"channel"	"CHAN_ITEM"

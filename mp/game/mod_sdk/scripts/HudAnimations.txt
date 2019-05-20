@@ -91,160 +91,38 @@ event FadeOutWeaponSelectionMenu
 	Animate HudWeaponSelection WeaponBoxDist3Alpha	"0 0 0 0"	Linear 0.0 0.5
 }
 
-event SuitAuxPowerMax
+//
+// CHudStamina
+//
+event StaminaMax
 {
-	// hide the suit power
-	Animate HudSuitPower BgColor		"0 0 0 0"		Linear 0.0 0.4
-	Animate HudSuitPower AuxPowerColor	"0 0 0 0"		Linear 0.0 0.4
+	// hide the stamina bar
+	Animate HudStamina BgColor		"0 0 0 0"		Linear 0.0 0.4
+	Animate HudStamina StaminaColor	"0 0 0 0"		Linear 0.0 0.4
 }
 
-event SuitAuxPowerNotMax
+event StaminaNotMax
 {
-	// show suit power
-	Animate HudSuitPower BgColor		"BgColor"		Linear 0.0 0.4
-	Animate HudSuitPower AuxPowerColor	"255 220 0 220"		Linear 0.0 0.4
+	// show the stamina bar
+	Animate HudStamina BgColor		"BgColor"		Linear 0.0 0.4
+	Animate HudStamina StaminaColor	"255 220 0 220"		Linear 0.0 0.4
 }
 
-event SuitAuxPowerDecreasedBelow25
+event StaminaDecreasedBelow25
 {
 	// make color red
-	Animate HudSuitPower AuxPowerColor	"255 0 0 220"		Linear 0.0 0.4
+	Animate HudStamina StaminaColor	"255 0 0 220"		Linear 0.0 0.4
 }
 
-event SuitAuxPowerIncreasedAbove25
+event StaminaIncreasedAbove25
 {
 	// make colr bright
 	Animate HudSuitPower AuxPowerColor	"255 220 0 220"		Linear 0.0 0.4
 }
 
-event SuitAuxPowerNoItemsActive
-{
-	// resize the aux power to be the smallest size
-	Animate HudSuitPower Size			"102 26"			Linear 0.0 0.4	[$WIN32]
-	Animate HudSuitPower Position		"16 400"			Linear 0.0 0.4	[$WIN32]
-	Animate HudSuitPower Size			"102 32"			Linear 0.0 0.4	[$X360]
-	Animate HudSuitPower Position		"48 378"			Linear 0.0 0.4	[$X360]
-}
-
-event SuitAuxPowerOneItemActive
-{
-	// resize the aux power to fit one item
-	Animate HudSuitPower Size			"102 36"			Linear 0.0 0.4	[$WIN32]
-	Animate HudSuitPower Position		"16 390"			Linear 0.0 0.4	[$WIN32]
-	Animate HudSuitPower Size			"102 42"			Linear 0.0 0.4	[$X360]
-	Animate HudSuitPower Position		"48 368"			Linear 0.0 0.4	[$X360]
-}
-
-event SuitAuxPowerTwoItemsActive
-{
-	// resize the aux power to fit two items
-	Animate HudSuitPower Size			"102 46"			Linear 0.0 0.4	[$WIN32]
-	Animate HudSuitPower Position		"16 380"			Linear 0.0 0.4	[$WIN32]
-	Animate HudSuitPower Size			"102 52"			Linear 0.0 0.4	[$X360]
-	Animate HudSuitPower Position		"48 358"			Linear 0.0 0.4	[$X360]
-}
-
-event SuitAuxPowerThreeItemsActive
-{
-	// resize the aux power to fit three items
-	Animate HudSuitPower Size			"102 56"			Linear 0.0 0.4	[$WIN32]
-	Animate HudSuitPower Position		"16 370"			Linear 0.0 0.4	[$WIN32]
-	Animate HudSuitPower Size			"102 62"			Linear 0.0 0.4	[$X360]
-	Animate HudSuitPower Position		"48 348"			Linear 0.0 0.4	[$X360]
-}
-
-event SuitFlashlightOn
-{
-	Animate HudFlashlight TextColor		"255 220 0 255"	Linear 0.0 0.1
-	Animate HudFlashlight TextColor		"255 220 0 160"	Deaccel 0.1 0.75
-	Animate HudFlashlight BgColor		"BgColor"	Linear 0.0 0.75
-}
-
-event SuitFlashlightOff
-{
-	StopEvent SuitFlashlightOn	0.0
-	Animate HudFlashlight TextColor		"0 0 0 0"	Linear 0.0 0.4
-	Animate HudFlashlight BgColor		"0 0 0 0"	Linear 0.0 0.4
-}
-
-event HudTakeDamageFront
-{
-}
-
-event HudTakeDamageLeft
-{
-	Animate HudDamageIndicator DmgColorLeft		"255 88 0 200"	Linear 0.0 0.0
-	Animate HudDamageIndicator DmgColorLeft		"255 0 0 200"	Linear 0.0 0.3
-	Animate HudDamageIndicator DmgColorLeft		"255 0 0 0"	Deaccel 0.3 0.5
-}
-
-event HudTakeDamageRight
-{
-	Animate HudDamageIndicator DmgColorRight		"255 88 0 200"	Linear 0.0 0.0
-	Animate HudDamageIndicator DmgColorRight		"255 0 0 200"	Linear 0.0 0.3
-	Animate HudDamageIndicator DmgColorRight		"255 0 0 0"	Deaccel 0.3 0.5
-}
-
-event HudTakeDamageBehind
-{
-	RunEvent HudTakeDamageLeft	0.0
-	RunEvent HudTakeDamageRight	0.0
-}
-
-event HudTakeDamageHighLeft
-{
-	Animate HudDamageIndicator DmgHighColorLeft	"255 88 0 255"	Linear 0.0 0.0
-	Animate HudDamageIndicator DmgHighColorLeft	"255 0 0 200"	Linear 0.0 0.4
-	Animate HudDamageIndicator DmgHighColorLeft	"255 0 0 0"	Deaccel 0.4 2.4
-}
-
-event HudTakeDamageHighRight
-{
-	Animate HudDamageIndicator DmgHighColorRight	"255 88 0 255"	Linear 0.0 0.0
-	Animate HudDamageIndicator DmgHighColorRight	"255 0 0 200"	Linear 0.0 0.4
-	Animate HudDamageIndicator DmgHighColorRight	"255 0 0 0"	Deaccel	0.4 2.4
-}
-
-event HudTakeDamageHigh
-{
-	Animate HudDamageIndicator DmgFullscreenColor	"255 88 0 200"	Linear 0.0 0.0
-	Animate HudDamageIndicator DmgFullscreenColor	"255 0 0 200"	Linear 0.0 0.4
-	Animate HudDamageIndicator DmgFullscreenColor	"255 0 0 0"	Deaccel 0.4 2.4
-}
-
-event HudTakeDamageDrown
-{
-	RunEvent HudTakeDamageBehind 0.0
-}
-
-event HudTakeDamagePoison
-{
-	Animate HudDamageIndicator DmgFullscreenColor	"255 236 128 240"	Linear 0.0 0.0
-	Animate HudDamageIndicator DmgFullscreenColor	"255 236 128 0"		Deaccel 0.4 0.8
-}
-
-event HudTakeDamageBurn
-{
-	Animate HudDamageIndicator DmgFullscreenColor	"255 0 0 200"	Linear 0.0 0.0
-	Animate HudDamageIndicator DmgFullscreenColor	"255 0 0 0"	Deaccel 0.2 0.4
-}
-
-event HudTakeDamageRadiation
-{
-	Animate HudDamageIndicator DmgFullscreenColor	"255 255 255 128"	Deaccel 0.0 0.1
-	Animate HudDamageIndicator DmgFullscreenColor	"255 255 255 0"		Deaccel 0.1 0.4
-	RunEvent HudTakeDamageBehind 0.0
-}
-
-event HudPlayerDeath
-{
-	StopEvent	HealthLoop  0.0
-	StopEvent	HealthPulse 0.0
-
-	Animate HudDamageIndicator DmgFullscreenColor	"255 0 0 96"		Deaccel 0.1 0.2
-	Animate HudDamageIndicator DmgFullscreenColor	"255 0 0 255"		Deaccel 0.3 4.0
-}
-
+//
+// CHudHealth
+//
 event HealthIncreasedAbove20
 {
 	StopEvent	HealthLoop  0.0
@@ -269,52 +147,6 @@ event HealthIncreasedBelow20
 	Animate HudHealth		Blur		"0"			Deaccel	0.1		2.0
 }
 
-event SuitPowerIncreasedAbove20
-{
-	StopEvent	SuitLoop 0.0
-	StopEvent	SuitPulse 0.0
-	StopEvent	SuitPowerZero	0.0
-
-	Animate	HudSuit 	Alpha		"255"			Linear 0.0 0.0
-
-	Animate	HudSuit		BgColor		"BgColor"	Linear	0.0	0.0
-	
-	Animate	HudSuit 	TextColor	"FgColor"	Linear 0.0 0.05
-	Animate	HudSuit		FgColor		"FgColor"	Linear 0.0 0.05
-	
-	Animate	HudSuit		Blur		"3"			Linear	0.0		0.1
-	Animate	HudSuit		Blur		"0"			Deaccel	0.1		2.0
-}
-
-
-event SuitPowerIncreasedBelow20
-{
-	StopEvent		SuitPowerZero	0.0
-	Animate	HudSuit 	Alpha		"255"			Linear 0.0 0.0
-
-	Animate HudSuit		FgColor		"BrightFg"	Linear	0.0		0.25
-	Animate HudSuit		FgColor		"FgColor"	Linear	0.3		0.75
-	
-	Animate HudSuit		Blur		"3"			Linear	0.0		0.1
-	Animate HudSuit		Blur		"0"			Deaccel	0.1		2.0
-}
-
-event SuitPowerZero
-{
-	StopEvent	SuitLoop 0.0
-	StopEvent	SuitPulse 0.0
-	StopEvent	SuitArmorLow 0.0
-	StopEvent	SuitDamageTaken 0.0
-
-	Animate	HudSuit Alpha		"0"			Linear 0.0 0.4
-}
-
-event TestMovement
-{
-	Animate HudHealth	Position	"256 120"	Linear	0.0		2.0
-	Animate HudHealth	Size		"128 24"	Linear	0.0		1.5
-}
-
 event HealthDamageTaken
 {
 	Animate HudHealth	FgColor		"BrightFg"	Linear	0.0		0.25
@@ -325,18 +157,6 @@ event HealthDamageTaken
 	
 	Animate HudHealth TextColor		"BrightFg"	Linear	0.0		0.1
 	Animate HudHealth	TextColor		"FgColor"		Deaccel	0.1		1.2
-}
-
-event SuitDamageTaken
-{
-	Animate HudSuit		FgColor	"BrightFg"	Linear	0.0		0.25
-	Animate HudSuit		FgColor	"FgColor"		Linear	0.3		0.75
-	
-	Animate HudSuit		Blur		"3"			Linear	0.0		0.1
-	Animate HudSuit		Blur		"0"			Deaccel	0.1		2.0
-	
-	Animate HudSuit		TextColor	"BrightFg"	Linear	0.0		0.1
-	Animate HudSuit		TextColor	"FgColor"		Deaccel	0.1		1.2
 }
 
 // health has been damaged to below 20%
@@ -379,51 +199,103 @@ event HealthLoop
 	RunEvent HealthPulse 0.0
 }
 
-
-// suit armor has been damaged to below 20%
-event SuitArmorLow
+//
+// CSDKHudArmor
+//
+event ArmorIncreasedAbove20
 {
-	StopEvent SuitDamageTaken 0.0
-	StopEvent SuitPulse	0.0
-	StopEvent SuitLoop	0.0
+	StopEvent	ArmorLoop 0.0
+	StopEvent	ArmorPulse 0.0
+	StopEvent	ArmorZero	0.0
 
-//	removing this effect -- matching it to the event for normal suit damage
-//	so, there will be no special indication (redness, flashing)
-//	in the hud that the suit armor is low
+	Animate	HudArmor 	Alpha		"255"			Linear 0.0 0.0
+
+	Animate	HudArmor		BgColor		"BgColor"	Linear	0.0	0.0
 	
-//	Animate HudSuit	BgColor		"DamagedBg"		Linear	0.0		0.1
-//	Animate HudSuit	BgColor		"BgColor"		Deaccel	0.1		1.75
+	Animate	HudArmor 		TextColor	"FgColor"	Linear 0.0 0.05
+	Animate	HudArmor		FgColor		"FgColor"	Linear 0.0 0.05
 	
-	Animate HudSuit		FgColor	"BrightFg"	Linear	0.0		0.25
-	Animate HudSuit		FgColor	"FgColor"		Linear	0.3		0.75
-	
-	Animate HudSuit		Blur		"3"			Linear	0.0		0.1
-	Animate HudSuit		Blur		"0"			Deaccel	0.1		2.0
-	
-	Animate HudSuit		TextColor	"BrightFg"	Linear	0.0		0.1
-	Animate HudSuit		TextColor	"FgColor"		Deaccel	0.1		1.2
-	
-//	RunEvent SuitPulse	1.0
+	Animate	HudArmor		Blur		"3"			Linear	0.0		0.1
+	Animate	HudArmor		Blur		"0"			Deaccel	0.1		2.0
 }
 
-event SuitPulse
-//	this even no longer gets called
+event ArmorIncreasedBelow20
 {
-	Animate HudSuit		Blur		"5"			Linear	0.0		0.1
-	Animate HudSuit		Blur		"2"			Deaccel	0.1		0.8
-	Animate HudSuit		TextColor	"BrightDamagedFg"	Linear	0.0		0.1
-	Animate HudSuit		TextColor	"DamagedFg"		Deaccel	0.1		0.8
-	Animate HudSuit		BgColor	"100 0 0 80"	Linear	0.0		0.1
-	Animate HudSuit		BgColor	"BgColor"		Deaccel	0.1		0.8
-	RunEvent SuitLoop	0.8
+	StopEvent		ArmorZero	0.0
+
+	Animate	HudArmor 	Alpha		"255"			Linear 0.0 0.0
+
+	Animate HudArmor		FgColor		"BrightFg"	Linear	0.0		0.25
+	Animate HudArmor		FgColor		"FgColor"	Linear	0.3		0.75
+	
+	Animate HudArmor		Blur		"3"			Linear	0.0		0.1
+	Animate HudArmor		Blur		"0"			Deaccel	0.1		2.0
 }
 
-event SuitLoop
+event ArmorZero
 {
-//	this event no longer gets called
-	RunEvent SuitPulse 0.0
+	StopEvent	ArmorLoop 0.0
+	StopEvent	ArmorPulse 0.0
+	StopEvent	ArmorLow 0.0
+	StopEvent	ArmorDamageTaken 0.0
+
+	Animate	HudArmor Alpha		"0"			Linear 0.0 0.4
 }
 
+event ArmorDamageTaken
+{
+	Animate HudArmor		FgColor	"BrightFg"	Linear	0.0		0.25
+	Animate HudArmor		FgColor	"FgColor"		Linear	0.3		0.75
+	
+	Animate HudArmor		Blur		"3"			Linear	0.0		0.1
+	Animate HudArmor		Blur		"0"			Deaccel	0.1		2.0
+	
+	Animate HudArmor		TextColor	"BrightFg"	Linear	0.0		0.1
+	Animate HudArmor		TextColor	"FgColor"		Deaccel	0.1		1.2
+}
+
+// armor has been damaged to below 20%
+event ArmorLow
+{
+	StopEvent ArmorDamageTaken 0.0
+	StopEvent ArmorPulse	0.0
+	StopEvent ArmorLoop	0.0
+	
+	Animate HudArmor		BgColor		"DamagedBg"		Linear	0.0		0.1
+	Animate HudArmor		BgColor		"BgColor"		Deaccel	0.1		1.75
+	
+	Animate HudArmor		FgColor	"BrightFg"	Linear	0.0		0.25
+	Animate HudArmor		FgColor	"FgColor"		Linear	0.3		0.75
+	
+	Animate HudArmor		Blur		"3"			Linear	0.0		0.1
+	Animate HudArmor		Blur		"0"			Deaccel	0.1		2.0
+	
+	Animate HudArmor		TextColor	"BrightFg"	Linear	0.0		0.1
+	Animate HudArmor		TextColor	"FgColor"		Deaccel	0.1		1.2
+	
+	RunEvent ArmorPulse	1.0
+}
+
+event ArmorPulse
+{
+	Animate HudArmor		Blur		"5"			Linear	0.0		0.1
+	Animate HudArmor		Blur		"2"			Deaccel	0.1		0.8
+	Animate HudArmor		TextColor	"BrightDamagedFg"	Linear	0.0		0.1
+	Animate HudArmor		TextColor	"DamagedFg"		Deaccel	0.1		0.8
+	Animate HudArmor		BgColor	"100 0 0 80"	Linear	0.0		0.1
+	Animate HudArmor		BgColor	"BgColor"		Deaccel	0.1		0.8
+
+	RunEvent ArmorLoop	0.8
+}
+
+event ArmorLoop
+{
+	RunEvent ArmorPulse 0.0
+}
+
+//
+// CHudAmmo & CHudSecondaryAmmo
+//
 // ammo has been picked up
 event AmmoIncreased
 {
@@ -511,27 +383,17 @@ event WeaponChanged
 }
 
 // ran if we just changed to a weapon that needs clip ammo
-event WeaponUsesClips	[$WIN32]
+event WeaponUsesClips
 {
 	Animate HudAmmo		Position	"r150 432"	Deaccel	0.0		0.4
 	Animate HudAmmo		Size		"132 36"	Deaccel	0.0		0.4
 }
-event WeaponUsesClips	[$X360]
-{
-	Animate HudAmmo		Position	"r208 416"	Deaccel	0.001	0.4
-	Animate HudAmmo		Size		"160 36"	Deaccel	0.0		0.4
-}
 
 // ran if we just changed to a weapon that does not use clip ammo
-event WeaponDoesNotUseClips	[$WIN32]
+event WeaponDoesNotUseClips
 {
 	Animate HudAmmo		Position	"r118 432"	Deaccel	0.0		0.4
 	Animate HudAmmo		Size		"100 36"	Deaccel	0.0		0.4
-}
-event WeaponDoesNotUseClips	[$X360]
-{
-	Animate HudAmmo		Position	"r175 416"	Deaccel	0.0		0.4
-	Animate HudAmmo		Size		"125 36"	Deaccel	0.0		0.4
 }
 
 event WeaponUsesSecondaryAmmo
@@ -559,14 +421,6 @@ event WeaponDoesNotUseSecondaryAmmo
 	Animate HudAmmoSecondary	FgColor		"0 0 0 0"	Linear	0.0		0.4
 	Animate HudAmmoSecondary	BgColor		"0 0 0 0"	Linear	0.0		0.4
 	Animate HudAmmoSecondary	Alpha		0		Linear	0.0		0.1
-}
-
-event CraneMagnetFlash
-{
-	Animate HudCraneMagnet TextColor	"255 220 0 255"	Linear 0.0 0.1
-	Animate HudCraneMagnet TextColor	"255 220 0 160"	Deaccel 0.1 0.3
-	Animate HudCraneMagnet TextColor	"255 170 0 220"	Deaccel 0.4 0.3
-	Animate HudCraneMagnet TextColor	"255 220 0 255"	Linear 0.8 0.2
 }
 
 event HintMessageShow
@@ -618,79 +472,6 @@ event KeyHintMessageHide
 	Animate HudHintKeyDisplay Alpha	0 Linear 0.0 0.5
 }
 
-
-event SquadMemberAdded
-{
-	StopEvent	SquadMemberDied		0.0
-	StopEvent	SquadMemberLeft		0.0
-
-	// add in the squad member, brighter then normal color
-	Animate HudSquadStatus LastMemberColor	"255 220 0 255" Linear 0.0 0.3
-	Animate HudSquadStatus LastMemberColor	"255 220 0 160" Linear 0.3 0.3
-}
-
-event SquadMemberLeft
-{
-	StopEvent	SquadMemberDied		0.0
-	StopEvent	SquadMemberAdded	0.0
-
-	// fade out the icon
-	Animate HudSquadStatus LastMemberColor	"255 220 0 0"	Linear 0.0 0.5
-}
-
-event SquadMemberDied
-{
-	StopEvent	SquadMemberAdded	0.0
-	StopEvent	SquadMemberLeft		0.0
-
-	// flash red, hold, then disappear
-	Animate HudSquadStatus	LastMemberColor	"255 0 0 255"	Linear 0.0 0.5
-	Animate HudSquadStatus	LastMemberColor	"255 0 0 0"		Linear 2.0 2.0
-}
-
-event SquadMembersFollowing
-{
-	StopEvent	SquadMembersStationed	0.0
-	Animate		HudSquadStatus	SquadTextColor	"255 220 0 255"		Linear 0.0 0.2
-	Animate		HudSquadStatus	SquadTextColor	"255 220 0 160"		Linear 0.2 0.4
-}
-
-event SquadMembersStationed
-{
-	StopEvent	SquadMembersFollowing	0.0
-	Animate		HudSquadStatus	SquadTextColor	"255 220 0 160"			Linear 0.5 0.5
-}
-
-event PoisonDamageTaken
-{
-	Animate 	HudPoisonDamageIndicator 	Alpha	255 Linear 0.0 1.0
-	RunEvent PoisonLoop	0.0
-}
-
-event PoisonDamageCured
-{
-	StopEvent 	PoisonDamageTaken	0.0
-	StopEvent 	PoisonLoop		0.0
-	StopEvent 	PoisonPulse		0.0
-	Animate 	HudPoisonDamageIndicator 	Alpha	0 Linear 0.0 1.0
-}
-
-event PoisonPulse
-{
-	Animate HudPoisonDamageIndicator	TextColor	"BrightFg"		Linear	0.0		0.1
-	Animate HudPoisonDamageIndicator	TextColor	"FgColor"		Deaccel	0.1		0.8
-	Animate HudPoisonDamageIndicator	BgColor		"100 0 0 80"		Linear	0.0		0.1
-	Animate HudPoisonDamageIndicator	BgColor		"BgColor"		Deaccel	0.1		0.8
-
-	RunEvent PoisonLoop	0.8
-}
-
-// call to loop PoisonLoop
-event PoisonLoop
-{
-	RunEvent PoisonPulse 0.0
-}
-
 // Commentary hud element
 event ShowCommentary
 {
@@ -703,4 +484,3 @@ event HideCommentary
 	StopEvent	ShowCommentary 0.0
 	Animate 	HudCommentary 	Alpha	0 Linear 0.0 0.5
 }
-

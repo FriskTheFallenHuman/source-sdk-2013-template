@@ -21,17 +21,14 @@
 #include "obstacle_pushaway.h"
 #include "bone_setup.h"
 #include "cl_animevent.h"
+#include "soundenvelope.h"
 
 // memdbgon must be the last include file in a .cpp file!!!
-ConVar cl_ragdoll_physics_enable( "cl_ragdoll_physics_enable", "1", 0, "Enable/disable ragdoll physics." );
 #include "tier0/memdbgon.h"
 
 #if defined( CSDKPlayer )
 	#undef CSDKPlayer
 #endif
-
-
-
 
 // -------------------------------------------------------------------------------- //
 // Player animation event. Sent to the client when a player fires, jumps, reloads, etc..
@@ -446,8 +443,16 @@ C_SDKPlayer::C_SDKPlayer() : m_iv_angEyeAngles( "C_SDKPlayer::m_iv_angEyeAngles"
 C_SDKPlayer::~C_SDKPlayer()
 {
 	m_PlayerAnimState->Release();
-}
 
+#if defined ( SDK_USE_SPRINTING )
+	// Kill the stamina sound!
+	if ( m_pStaminaSound )
+	{
+		CSoundEnvelopeController::GetController().SoundDestroy( m_pStaminaSound );
+		m_pStaminaSound = NULL;
+	}
+#endif
+}
 
 C_SDKPlayer* C_SDKPlayer::GetLocalSDKPlayer()
 {
@@ -773,6 +778,10 @@ void C_SDKPlayer::ClientThink()
 
 	UpdateIDTarget();
 
+#if defined ( SDK_USE_SPRINTING )
+	StaminaSoundThink();
+#endif
+
 	// Avoidance
 	if ( gpGlobals->curtime >= m_fNextThinkPushAway )
 	{
@@ -780,6 +789,48 @@ void C_SDKPlayer::ClientThink()
 		m_fNextThinkPushAway =  gpGlobals->curtime + PUSHAWAY_THINK_INTERVAL;
 	}
 }
+
+#if defined ( SDK_USE_SPRINTING )
+//-----------------------------------------------------------------------------
+// Purpose:Start or stop the stamina breathing sound if necessary
+//-----------------------------------------------------------------------------
+void C_SDKPlayer::StaminaSoundThink( void )
+{
+	if ( m_bPlayingLowStaminaSound )
+	{
+		if ( !IsAlive() || m_Shared.GetStamina() >= LOW_STAMINA_THRESHOLD )
+		{
+			// stop the sprint sound
+			CSoundEnvelopeController &controller = CSoundEnvelopeController::GetController();
+			controller.SoundFadeOut( m_pStaminaSound, 1.0, true );
+
+			// SoundFadeOut will destroy this sound, so we will have to create another one
+			// if we go below the threshold again soon
+			m_pStaminaSound = NULL;
+
+			m_bPlayingLowStaminaSound = false;
+		}
+	}
+	else
+	{
+		if ( IsAlive() && m_Shared.GetStamina() < LOW_STAMINA_THRESHOLD )
+		{
+			// we are alive and have low stamina
+			CLocalPlayerFilter filter;
+
+			CSoundEnvelopeController &controller = CSoundEnvelopeController::GetController();
+
+			if ( !m_pStaminaSound )
+                m_pStaminaSound = controller.SoundCreate( filter, entindex(), "Player.Sprint" );
+
+			controller.Play( m_pStaminaSound, 0.0, 100 );
+			controller.SoundChangeVolume( m_pStaminaSound, 1.0, 2.0 );
+
+			m_bPlayingLowStaminaSound = true;
+		}
+	}
+}
+#endif
 
 //-----------------------------------------------------------------------------
 // Purpose:

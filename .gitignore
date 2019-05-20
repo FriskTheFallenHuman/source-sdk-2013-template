@@ -69,6 +69,7 @@ mp/game/*/ServerConfig.vdf
 mp/game/*/maps/*.prt
 mp/game/*/maps/*.vmx
 mp/game/*/maps/graphs/*
+mp/game/*/screenshots/*
 
 # shader files
 *.tmp

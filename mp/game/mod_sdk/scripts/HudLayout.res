@@ -37,9 +37,9 @@
 		"tall"	 "480"
 	}
 
-	HudSuit
+	HudArmor
 	{
-		"fieldName"		"HudSuit"
+		"fieldName"		"HudArmor"
 		"xpos"	"140"
 		"ypos"	"432"
 		"wide"	"108"
@@ -93,9 +93,9 @@
 		"digit_ypos" "2"
 	}
 	
-	HudSuitPower
+	HudStamina
 	{
-		"fieldName" "HudSuitPower"
+		"fieldName" "HudStamina"
 		"visible" "1"
 		"enabled" "1"
 		"xpos"	"16"
@@ -103,9 +103,8 @@
 		"wide"	"102"
 		"tall"	"26"
 		
-		"AuxPowerLowColor" "255 0 0 220"
-		"AuxPowerHighColor" "255 220 0 220"
-		"AuxPowerDisabledAlpha" "70"
+		"StaminaColor" "255 220 0 220"
+		"StaminaDisabledAlpha" "70"
 
 		"BarInsetX" "8"
 		"BarInsetY" "15"
@@ -121,20 +120,6 @@
 		"text2_gap" "10"
 
 		"PaintBackgroundType"	"2"
-	}
-
-	HudPosture
-	{
-		"fieldName" 		"HudPosture"
-		"visible" 		"1"
-		"PaintBackgroundType"	"2"
-		"xpos"	"16"
-		"ypos"	"316"
-		"tall"  "36"
-		"wide"	"36"
-		"font"	"WeaponIconsSmall"
-		"icon_xpos"	"10"
-		"icon_ypos" 	"0"
 	}
 	
 	HudFlashlight
@@ -161,6 +146,7 @@
 		"BarChunkWidth" "2"
 		"BarChunkGap" "1"
 	}
+
 	HudVoiceSelfStatus
 	{
 		"fieldName" "HudVoiceSelfStatus"
@@ -255,14 +241,32 @@
 		"wide"	 "f0"
 		"tall"	 "480"
 	}
-
+	
 	HudDeathNotice
 	{
 		"fieldName" "HudDeathNotice"
 		"visible" "1"
 		"enabled" "1"
-		"wide"	 "f0"
-		"tall"	 "400"
+		"xpos"	 "r640"
+		"ypos"	 "12"
+		"wide"	 "628"
+		"tall"	 "468"
+
+		"MaxDeathNotices" "10"
+
+		"LineHeight"	  "16"
+		"LineSpacing"	  "4"
+		"CornerRadius"	  "3"
+		"RightJustify"	  "1"	// If 1, draw notices from the right
+		
+		"TextFont"		"Default"
+		
+		"TeamBlue"		"CT_Blue"
+		"TeamRed"		"T_Red"
+		"IconColor"		"255 255 255 255"
+
+		"BaseBackgroundColor"	"0 0 0 200"
+		"LocalBackgroundColor"	"0 0 0 200"
 	}
 
 	HudVehicle

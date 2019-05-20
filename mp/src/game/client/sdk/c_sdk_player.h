@@ -94,6 +94,10 @@ public:
 #if defined ( SDK_USE_SPRINTING )
 	void SetSprinting( bool bIsSprinting );
 	bool IsSprinting( void );
+
+	void StaminaSoundThink( void );
+	CSoundPatch		*m_pStaminaSound;
+	bool m_bPlayingLowStaminaSound;
 #endif
 
 	CSDKPlayerShared m_Shared;

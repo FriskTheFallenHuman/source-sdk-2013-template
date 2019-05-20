@@ -49,6 +49,11 @@
 // define SDK_USE_PRONE
 #define SDK_USE_PRONE
 
+//
+// Can your players use viewbob?
+// define SDK_USE_VIEWBOB
+#define SDK_USE_VIEWBOB
+
 //=====================
 // EXTRA WEAPON OPTIONS
 //=====================
@@ -70,7 +75,7 @@
 
 
 
-#define SDK_GAME_DESCRIPTION	"SDK Template mod v1"
+#define SDK_GAME_DESCRIPTION	"SDK Template 2013 mod v2"
 
 //================================================================================
 // Most elements below here are specific to the options above.

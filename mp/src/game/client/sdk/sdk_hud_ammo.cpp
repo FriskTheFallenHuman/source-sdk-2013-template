@@ -176,67 +176,6 @@ void CHudAmmo::UpdatePlayerAmmo( C_BasePlayer *player )
 	}
 }
 
-/*
-void CHudAmmo::UpdateVehicleAmmo( C_BasePlayer *player, IClientVehicle *pVehicle )
-{
-	m_hCurrentActiveWeapon = NULL;
-	CBaseEntity *pVehicleEnt = pVehicle->GetVehicleEnt();
-
-	if ( !pVehicleEnt || pVehicle->GetPrimaryAmmoType() < 0 )
-	{
-		SetPaintEnabled(false);
-		SetPaintBackgroundEnabled(false);
-		return;
-	}
-
-	SetPaintEnabled(true);
-	SetPaintBackgroundEnabled(true);
-
-	// get the ammo in our clip
-	int ammo1 = pVehicle->GetPrimaryAmmoClip();
-	int ammo2;
-	if (ammo1 < 0)
-	{
-		// we don't use clip ammo, just use the total ammo count
-		ammo1 = pVehicle->GetPrimaryAmmoCount();
-		ammo2 = 0;
-	}
-	else
-	{
-		// we use clip ammo, so the second ammo is the total ammo
-		ammo2 = pVehicle->GetPrimaryAmmoCount();
-	}
-
-	if (pVehicleEnt == m_hCurrentVehicle)
-	{
-		// same weapon, just update counts
-		SetAmmo(ammo1, true);
-		SetAmmo2(ammo2, true);
-	}
-	else
-	{
-		// diferent weapon, change without triggering
-		SetAmmo(ammo1, false);
-		SetAmmo2(ammo2, false);
-
-		// update whether or not we show the total ammo display
-		if (pVehicle->PrimaryAmmoUsesClips())
-		{
-			SetShouldDisplaySecondaryValue(true);
-			g_pClientMode->GetViewportAnimationController()->StartAnimationSequence("WeaponUsesClips");
-		}
-		else
-		{
-			g_pClientMode->GetViewportAnimationController()->StartAnimationSequence("WeaponDoesNotUseClips");
-			SetShouldDisplaySecondaryValue(false);
-		}
-
-		g_pClientMode->GetViewportAnimationController()->StartAnimationSequence("WeaponChanged");
-		m_hCurrentVehicle = pVehicleEnt;
-	}
-}
-*/
-
 //-----------------------------------------------------------------------------
 // Purpose: called every frame to get ammo info from the weapon
 //-----------------------------------------------------------------------------

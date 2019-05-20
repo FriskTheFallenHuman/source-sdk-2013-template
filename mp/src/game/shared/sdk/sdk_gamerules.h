@@ -92,6 +92,9 @@ class CSDKGameRules : public CTeamplayRules
 public:
 	DECLARE_CLASS( CSDKGameRules, CTeamplayRules );
 
+			CSDKGameRules();
+	virtual ~CSDKGameRules();
+
 	virtual bool	ShouldCollide( int collisionGroup0, int collisionGroup1 );
 
 	virtual int		PlayerRelationship( CBaseEntity *pPlayer, CBaseEntity *pTarget );
@@ -103,6 +106,7 @@ public:
 		return false;	
 #endif
 	}
+
 	// Get the view vectors for this mod.
 	virtual const CViewVectors* GetViewVectors() const;
 	virtual const CSDKViewVectors *GetSDKViewVectors() const;
@@ -114,6 +118,8 @@ public:
 	const char *GetPlayerClassName( int cls, int team );
 #endif
 
+	virtual bool IsConnectedUserInfoChangeAllowed( CBasePlayer *pPlayer ) { return true; }
+
 #ifdef CLIENT_DLL
 
 	DECLARE_CLIENTCLASS_NOBASE(); // This makes datatables able to access our private vars.
@@ -121,9 +127,7 @@ public:
 #else
 
 	DECLARE_SERVERCLASS_NOBASE(); // This makes datatables able to access our private vars.
-	
-	CSDKGameRules();
-	virtual ~CSDKGameRules();
+
 	virtual const char *GetGameDescription( void ) { return SDK_GAME_DESCRIPTION; } 
 	virtual bool ClientCommand( CBaseEntity *pEdict, const CCommand &args );
 	virtual void RadiusDamage( const CTakeDamageInfo &info, const Vector &vecSrcIn, float flRadius, int iClassIgnore );
@@ -132,6 +136,9 @@ public:
 	void InitTeams( void );
 
 	void CreateStandardEntities( void );
+
+	virtual void InitDefaultAIRelationships( void );
+	virtual const char*	AIClassText(int classType);
 
 	virtual const char *GetChatPrefix( bool bTeamOnly, CBasePlayer *pPlayer );
 	virtual const char *GetChatFormat( bool bTeamOnly, CBasePlayer *pPlayer );

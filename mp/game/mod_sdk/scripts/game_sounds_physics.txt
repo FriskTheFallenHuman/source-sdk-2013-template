@@ -5240,7 +5240,6 @@
 	}
 }
 
-
 "weapon.StepRight"
 {
 	"channel"       "CHAN_BODY"
@@ -5265,7 +5264,6 @@
 		}
 	}
 }
-
 
 "weapon.ImpactSoft"
 {
@@ -5426,5 +5424,105 @@
 		"wave"		"physics\metal\radio_impact_lg_03.wav"
 		"wave"		"physics\metal\radio_impact_lg_04.wav"
 		"wave"		"physics\metal\radio_impact_lg_05.wav"
+	}
+}
+
+"Gunship.Impact"
+{
+	"soundlevel"		"SNDLVL_75dB"
+	"volume"		"1.0"
+	"pitch"			"PITCH_NORM"
+	"rndwave"
+	{
+		"wave"	"physics/metal/metal_solid_impact_hard1.wav"
+	}
+}
+
+"Gunship.Scrape"
+{
+	"soundlevel"		"SNDLVL_70dB"
+	"volume"		"1.0"
+	"pitch"			"PITCH_NORM"
+	"rndwave"
+	{
+		"wave"	"physics/metal/metal_solid_impact_hard1.wav"
+	}
+}
+
+"Strider.Impact"
+{
+	"soundlevel"		"SNDLVL_75dB"
+	"volume"		"1.0"
+	"pitch"			"PITCH_NORM"
+	"rndwave"
+	{
+		"wave"	"physics/flesh/flesh_strider_impact_bullet1.wav"
+		"wave"	"physics/flesh/flesh_strider_impact_bullet2.wav"
+		"wave"	"physics/flesh/flesh_strider_impact_bullet3.wav"
+	}
+}
+
+"Strider.Scrape"
+{
+	"soundlevel"		"SNDLVL_70dB"
+	"volume"		"1.0"
+	"pitch"			"PITCH_NORM"
+	"rndwave"
+	{
+		"wave"	"physics/flesh/flesh_strider_impact_bullet1.wav"
+		"wave"	"physics/flesh/flesh_strider_impact_bullet2.wav"
+		"wave"	"physics/flesh/flesh_strider_impact_bullet3.wav"
+	}
+}
+
+"MetalVehicle.ImpactHard"
+{
+	"soundlevel"		"SNDLVL_110dB"
+	"volume"		"0.9"
+	"pitch"			"80,110"
+	"rndwave"
+	{
+		"wave"		"vehicles/v8/vehicle_impact_heavy1.wav"
+		"wave"		"vehicles/v8/vehicle_impact_heavy2.wav"
+		"wave"		"vehicles/v8/vehicle_impact_heavy3.wav"
+		"wave"		"vehicles/v8/vehicle_impact_heavy4.wav"
+	}
+}
+
+"MetalVehicle.ImpactSoft"
+{
+	"soundlevel"		"SNDLVL_90dB"
+	"volume"		"0.5"
+	"pitch"			"80,110"
+	"rndwave"
+	{
+		"wave"		"vehicles/v8/vehicle_impact_medium1.wav"
+		"wave"		"vehicles/v8/vehicle_impact_medium2.wav"
+		"wave"		"vehicles/v8/vehicle_impact_medium3.wav"
+		"wave"		"vehicles/v8/vehicle_impact_medium4.wav"
+	}
+}
+
+"MetalVehicle.ScrapeRough"
+{
+	"soundlevel"		"SNDLVL_90dB"
+	"volume"		"0.5"
+	"pitch"			"110,130"
+	"rndwave"
+	{
+		"wave"		"vehicles/v8/vehicle_rollover1.wav"
+		"wave"		"vehicles/v8/vehicle_rollover2.wav"
+	}
+}
+
+"MetalVehicle.ScrapeSmooth"
+{
+	"soundlevel"		"SNDLVL_90dB"
+	"volume"		"0.3"
+	"pitch"			"110,130"
+	"rndwave"
+	{
+		"wave"		"vehicles/v8/vehicle_rollover1.wav"
+		"wave"		"vehicles/v8/vehicle_rollover2.wav"
 	}
 }

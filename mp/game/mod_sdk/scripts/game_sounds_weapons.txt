@@ -111,6 +111,37 @@
 	"wave"			"weapons/pinpull.wav"
 }
 
+"Default.ClipEmpty_Rifle"
+{
+	"channel"		"CHAN_WEAPON"
+	"volume"		"1.0"
+	"CompatibilityAttenuation"	"1.0"
+	"pitch"		"PITCH_NORM"
+
+	"wave"			"weapons/ClipEmpty_Rifle.wav"
+}
+
+
+"Default.ClipEmpty_Pistol"
+{
+	"channel"		"CHAN_WEAPON"
+	"volume"		"1.0"
+	"CompatibilityAttenuation"	"1.0"
+	"pitch"		"PITCH_NORM"
+
+	"wave"			"weapons/ClipEmpty_Pistol.wav"
+}
+
+"Default.Zoom"
+{
+	"channel"		"CHAN_ITEM"
+	"volume"		"1.0"
+	"CompatibilityAttenuation"	"2.39"
+	"pitch"		"PITCH_NORM"
+
+	"wave"			"weapons/zoom.wav"
+}
+
 "Grenade.Bounce"
 {
 	"channel"		"CHAN_VOICE"
@@ -182,6 +213,16 @@
 
 	"wave"		"weapons/slam/bounce1.wav"
 }
+
+"WeaponFrag.Roll"
+{
+	"channel"	"CHAN_VOICE"
+	"volume"	"0.7"
+	"soundlevel"  "SNDLVL_75dB"
+
+	"wave"	"weapons/slam/throw.wav"
+}
+
 // --------------------------
 // M3SUPER90
 // --------------------------

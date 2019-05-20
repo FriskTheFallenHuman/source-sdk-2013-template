@@ -17,6 +17,7 @@
 #include "GameStats.h"
 #include "obstacle_pushaway.h"
 #include "in_buttons.h"
+#include "game.h"
 
 // memdbgon must be the last include file in a .cpp file!!!
 #include "tier0/memdbgon.h"
@@ -299,6 +300,10 @@ void CSDKPlayer::PostThink()
 
 void CSDKPlayer::Precache()
 {
+	PrecacheScriptSound( "Player.FlashlightOn" );
+	PrecacheScriptSound( "Player.FlashlightOff" );
+	PrecacheScriptSound( "Player.JumpLanding" );
+	PrecacheScriptSound( "Player.Jump" );
 
 	//Tony; go through our list of player models that we may be using and cache them
 	int i = 0;
@@ -753,6 +758,8 @@ void CSDKPlayer::Event_Killed( const CTakeDamageInfo &info )
 {
 	ThrowActiveWeapon();
 
+	FlashlightTurnOff();
+
 	// show killer in death cam mode
 	// chopped down version of SetObserverTarget without the team check
 	if( info.GetAttacker() && info.GetAttacker()->IsPlayer() )
@@ -852,6 +859,7 @@ void CSDKPlayer::PlayerDeathThink()
 {
 	//overridden, do nothing - our states handle this now
 }
+
 void CSDKPlayer::CreateRagdollEntity()
 {
 	if ( m_hRagdoll )
@@ -925,39 +933,90 @@ void CSDKPlayer::CreateViewModel( int index /*=0*/ )
 	}
 }
 
+//-----------------------------------------------------------------------------
+// Purpose: 
+//-----------------------------------------------------------------------------
+static void CreateSDKJeep( CBasePlayer *pPlayer )
+{
+	// Cheat to create a jeep in front of the player
+	Vector vecForward;
+	AngleVectors( pPlayer->EyeAngles(), &vecForward );
+	CBaseEntity *pJeep = (CBaseEntity *)CreateEntityByName( "prop_vehicle_jeep" );
+	if ( pJeep )
+	{
+		Vector vecOrigin = pPlayer->GetAbsOrigin() + vecForward * 256 + Vector(0,0,64);
+		QAngle vecAngles( 0, pPlayer->GetAbsAngles().y - 90, 0 );
+		pJeep->SetAbsOrigin( vecOrigin );
+		pJeep->SetAbsAngles( vecAngles );
+		pJeep->KeyValue( "model", "models/buggy.mdl" );
+		pJeep->KeyValue( "solid", "6" );
+		pJeep->KeyValue( "targetname", "sdk_jeep" );
+		pJeep->KeyValue( "vehiclescript", "scripts/vehicles/sdk_jeep.txt" );
+		DispatchSpawn( pJeep );
+		pJeep->Activate();
+		pJeep->Teleport( &vecOrigin, &vecAngles, NULL );
+	}
+}
+
+void CC_CH_CreateSDKJeep( void )
+{
+	CBasePlayer *pPlayer = UTIL_GetCommandClient();
+	if ( !pPlayer )
+		return;
+	CreateSDKJeep( pPlayer );
+}
+
+static ConCommand ch_createjeep("ch_createsdkjeep", CC_CH_CreateSDKJeep, "Spawn the sdk sample jeep in front of the player.", FCVAR_CHEAT );
+
 void CSDKPlayer::CheatImpulseCommands( int iImpulse )
 {
 	if ( !sv_cheats->GetBool() )
-	{
 		return;
-	}
 
-	if ( iImpulse != 101 )
+	switch ( iImpulse )
 	{
-		BaseClass::CheatImpulseCommands( iImpulse );
-		return ;
-	}
-	gEvilImpulse101 = true;
+		case 82:
+			// Cheat to create a jeep in front of the player
+			CreateSDKJeep( this );
+			break;
 
-	EquipSuit();
-	
-	if ( GetHealth() < 100 )
-	{
-		TakeHealth( 25, DMG_GENERIC );
-	}
+		case 101:
+		{
+			gEvilImpulse101 = true;
 
-	gEvilImpulse101		= false;
+			EquipSuit();
+
+			if ( GetHealth() < 100 )
+				TakeHealth( 25, DMG_GENERIC );
+		
+			gEvilImpulse101		= false;
+		}
+		break;
+
+		default:
+			BaseClass::CheatImpulseCommands( iImpulse );
+	}
 }
 
 
 void CSDKPlayer::FlashlightTurnOn( void )
 {
-	AddEffects( EF_DIMLIGHT );
+	if( flashlight.GetInt() > 0 && IsAlive() )
+	{
+		AddEffects( EF_DIMLIGHT );
+		EmitSound( "Player.FlashlightOn" );
+	}
 }
 
 void CSDKPlayer::FlashlightTurnOff( void )
 {
-	RemoveEffects( EF_DIMLIGHT );
+	if( IsEffectActive(EF_DIMLIGHT) )
+	{
+		RemoveEffects( EF_DIMLIGHT );
+
+		if( m_iHealth > 0 )
+			EmitSound( "Player.FlashlightOff" );
+	}
 }
 
 int CSDKPlayer::FlashlightIsOn( void )
@@ -1052,7 +1111,7 @@ bool CSDKPlayer::ClientCommand( const CCommand &args )
 #endif
 		return true;
 	}
-	else if ( FStrEq( pcmd, "droptest" ) )
+	else if ( FStrEq( pcmd, "drop" ) )
 	{
 		ThrowActiveWeapon();
 		return true;
@@ -1077,7 +1136,7 @@ bool CSDKPlayer::HandleCommand_JoinTeam( int team )
 	// If we already died and changed teams once, deny
 	if( m_bTeamChanged && team != TEAM_SPECTATOR && iOldTeam != TEAM_SPECTATOR )
 	{
-		ClientPrint( this, HUD_PRINTCENTER, "game_switch_teams_once" );
+		ClientPrint( this, HUD_PRINTCENTER, "#game_switch_teams_once" );
 		return true;
 	}
 #endif

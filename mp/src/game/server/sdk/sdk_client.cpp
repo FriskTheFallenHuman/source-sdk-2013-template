@@ -29,6 +29,7 @@
 #include "sdk_gamerules.h"
 #include "tier0/vprof.h"
 #include "sdk_bot_temp.h"
+#include "filesystem.h"
 
 // memdbgon must be the last include file in a .cpp file!!!
 #include "tier0/memdbgon.h"
@@ -116,7 +117,6 @@ const char *GetGameDescription()
 		return SDK_GAME_DESCRIPTION;
 }
 
-
 //-----------------------------------------------------------------------------
 // Purpose: Precache game-specific models & sounds
 //-----------------------------------------------------------------------------
@@ -125,6 +125,37 @@ void ClientGamePrecache( void )
 	// Materials used by the client effects
 	CBaseEntity::PrecacheModel( "sprites/white.vmt" );
 	CBaseEntity::PrecacheModel( "sprites/physbeam.vmt" );
+
+	const char *pFilename = "scripts/client_precache.txt";
+	KeyValues *pValues = new KeyValues( "ClientPrecache" );
+
+	if ( !pValues->LoadFromFile( filesystem, pFilename, "GAME" ) )
+	{
+		Error( "Can't open %s for client precache info.", pFilename );
+		pValues->deleteThis();
+		return;
+	}
+
+	for ( KeyValues *pData = pValues->GetFirstSubKey(); pData != NULL; pData = pData->GetNextKey() )
+	{
+		const char *pszType = pData->GetName();
+		const char *pszFile = pData->GetString();
+
+		if ( Q_strlen( pszType ) > 0 &&
+			 Q_strlen( pszFile ) > 0 )
+		{
+			if ( !Q_stricmp( pData->GetName(), "model" ) || !Q_stricmp( pData->GetName(), "material" ) )
+				CBaseEntity::PrecacheModel( pszFile );
+			else if ( !Q_stricmp( pData->GetName(), "scriptsound" ) )
+				CBaseEntity::PrecacheScriptSound( pszFile );
+			else if ( !Q_stricmp( pData->GetName(), "npc" ) || ( !Q_stricmp( pData->GetName(), "effect" ) ) )
+				UTIL_PrecacheOther( pszFile );
+			else if ( !Q_stricmp( pData->GetName(), "particle" ) )
+				PrecacheParticleSystem( pszFile );
+		}
+	}
+
+	pValues->deleteThis();
 }
 
 

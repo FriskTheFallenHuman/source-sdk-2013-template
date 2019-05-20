@@ -10,7 +10,7 @@
 #include "ammodef.h"
 #include "KeyValues.h"
 #include "weapon_sdkbase.h"
-
+#include "filesystem.h"
 
 #ifdef CLIENT_DLL
 
@@ -158,6 +158,48 @@ const CSDKViewVectors *CSDKGameRules::GetSDKViewVectors() const
 	return &g_SDKViewVectors;
 }
 
+// --------------------------------------------------------------------------------------------------- //
+// CSDKGameRules implementation.
+// --------------------------------------------------------------------------------------------------- //
+CSDKGameRules::CSDKGameRules()
+{
+#ifndef CLIENT_DLL
+	InitTeams();
+
+	InitDefaultAIRelationships();
+
+	m_bLevelInitialized = false;
+
+#if defined ( SDK_USE_TEAMS )
+	m_iSpawnPointCount_Blue = 0;
+	m_iSpawnPointCount_Red = 0;
+#endif // SDK_USE_TEAMS
+
+	m_flGameStartTime = 0;
+
+	if ( filesystem->FileExists( UTIL_VarArgs( "maps/cfg/%s.cfg", STRING(gpGlobals->mapname) ) ) )
+	{
+		// Execute a map specific cfg file - as in Day of Defeat
+		engine->ServerCommand( UTIL_VarArgs( "exec %s.cfg */maps\n", STRING(gpGlobals->mapname) ) );
+		engine->ServerExecute();
+	}
+#else
+
+#endif
+}
+
+//-----------------------------------------------------------------------------
+// Purpose: 
+//-----------------------------------------------------------------------------
+CSDKGameRules::~CSDKGameRules()
+{
+#ifndef CLIENT_DLL
+	// Note, don't delete each team since they are in the gEntList and will 
+	// automatically be deleted from there, instead.
+	g_Teams.Purge();
+#endif
+}
+
 #ifdef CLIENT_DLL
 
 
@@ -241,25 +283,6 @@ void InitBodyQue()
 {
 }
 
-
-// --------------------------------------------------------------------------------------------------- //
-// CSDKGameRules implementation.
-// --------------------------------------------------------------------------------------------------- //
-
-CSDKGameRules::CSDKGameRules()
-{
-	InitTeams();
-
-	m_bLevelInitialized = false;
-
-#if defined ( SDK_USE_TEAMS )
-	m_iSpawnPointCount_Blue = 0;
-	m_iSpawnPointCount_Red = 0;
-#endif // SDK_USE_TEAMS
-
-	m_flGameStartTime = 0;
-
-}
 void CSDKGameRules::ServerActivate()
 {
 	//Tony; initialize the level
@@ -317,16 +340,6 @@ void CSDKGameRules::CheckLevelInitialized()
 }
 
 //-----------------------------------------------------------------------------
-// Purpose: 
-//-----------------------------------------------------------------------------
-CSDKGameRules::~CSDKGameRules()
-{
-	// Note, don't delete each team since they are in the gEntList and will 
-	// automatically be deleted from there, instead.
-	g_Teams.Purge();
-}
-
-//-----------------------------------------------------------------------------
 // Purpose: TF2 Specific Client Commands
 // Input  :
 // Output :
@@ -334,19 +347,7 @@ CSDKGameRules::~CSDKGameRules()
 bool CSDKGameRules::ClientCommand( CBaseEntity *pEdict, const CCommand &args )
 {
 	CSDKPlayer *pPlayer = ToSDKPlayer( pEdict );
-#if 0
-	const char *pcmd = args[0];
-	if ( FStrEq( pcmd, "somecommand" ) )
-	{
-		if ( args.ArgC() < 2 )
-			return true;
 
-		// Do something here!
-
-		return true;
-	}
-	else 
-#endif
 	// Handle some player commands here as they relate more directly to gamerules state
 	if ( pPlayer->ClientCommand( args ) )
 	{
@@ -1152,11 +1153,23 @@ bool CSDKGameRules::ShouldCollide( int collisionGroup0, int collisionGroup1 )
 	}
 
 	//Don't stand on COLLISION_GROUP_WEAPON
-	if( collisionGroup0 == COLLISION_GROUP_PLAYER_MOVEMENT &&
-		collisionGroup1 == COLLISION_GROUP_WEAPON )
-	{
+	if( collisionGroup0 == COLLISION_GROUP_PLAYER_MOVEMENT && collisionGroup1 == COLLISION_GROUP_WEAPON )
 		return false;
-	}
+
+	//If collisionGroup0 is not a player then NPC_ACTOR behaves just like an NPC.
+	if ( collisionGroup1 == COLLISION_GROUP_NPC_ACTOR && collisionGroup0 != COLLISION_GROUP_PLAYER )
+		collisionGroup1 = COLLISION_GROUP_NPC;
+
+	//players don't collide against NPC Actors.
+	//I could've done this up where I check if collisionGroup0 is NOT a player but I decided to just
+	//do what the other checks are doing in this function for consistency sake.
+	if ( collisionGroup1 == COLLISION_GROUP_NPC_ACTOR && collisionGroup0 == COLLISION_GROUP_PLAYER )
+		return false;
+		
+	// In cases where NPCs are playing a script which causes them to interpenetrate while riding on another entity,
+	// such as a train or elevator, you need to disable collisions between the actors so the mover can move them.
+	if ( collisionGroup0 == COLLISION_GROUP_NPC_SCRIPTED && collisionGroup1 == COLLISION_GROUP_NPC_SCRIPTED )
+		return false;
 
 	return BaseClass::ShouldCollide( collisionGroup0, collisionGroup1 ); 
 }
@@ -1260,7 +1273,7 @@ const char *CSDKGameRules::GetChatFormat( bool bTeamOnly, CBasePlayer *pPlayer )
 	else
 	{
 		if ( pPlayer->GetTeamNumber() == TEAM_SPECTATOR)
-			pszFormat = "SDK_Chat_AllSpec";
+			pszFormat = "SDK_Chat_All_Spec";
 		else
 		{
 			if (pPlayer->m_lifeState != LIFE_ALIVE )
@@ -1271,6 +1284,42 @@ const char *CSDKGameRules::GetChatFormat( bool bTeamOnly, CBasePlayer *pPlayer )
 	}
 
 	return pszFormat;
+}
+
+void CSDKGameRules::InitDefaultAIRelationships( void )
+{
+	int i, j;
+
+	//  Allocate memory for default relationships
+	CBaseCombatCharacter::AllocateDefaultRelationships();
+
+	// --------------------------------------------------------------
+	// First initialize table so we can report missing relationships
+	// --------------------------------------------------------------
+	for (i=0; i<NUM_AI_CLASSES; i++ )
+	{
+		for ( j=0; j<NUM_AI_CLASSES; j++ )
+		{
+			// By default all relationships are neutral of priority zero
+			CBaseCombatCharacter::SetDefaultRelationship( (Class_T)i, (Class_T)j, D_NU, 0 );
+		}
+	}
+
+	// ------------------------------------------------------------
+	//	> CLASS_PLAYER
+	// ------------------------------------------------------------
+	CBaseCombatCharacter::SetDefaultRelationship( CLASS_PLAYER,			CLASS_NONE,				D_NU, 0 );			
+	CBaseCombatCharacter::SetDefaultRelationship( CLASS_PLAYER,			CLASS_PLAYER,			D_NU, 0 );			
+}
+
+const char* CSDKGameRules::AIClassText(int classType)
+{
+	switch ( classType )
+	{
+		case CLASS_NONE:			return "CLASS_NONE";
+		case CLASS_PLAYER:			return "CLASS_PLAYER";
+		default:					return "MISSING CLASS in ClassifyText()";
+	}
 }
 #endif
 

@@ -53,3 +53,6 @@
 "t"				"impulse 201"
 "y"				"messagemode"
 "u"				"messagemode2"
+"."				"changeteam"
+","				"changeclass"
+"g"				"drop"

@@ -24,6 +24,8 @@
 #include "globalstate.h"
 #include "eventqueue.h"
 #include "rumble_shared.h"
+#include "weapon_sdkbase.h"
+#include "sdk_player.h"
 
 // memdbgon must be the last include file in a .cpp file!!!
 #include "tier0/memdbgon.h"
@@ -230,12 +232,6 @@ private:
 	int				m_iNumberOfEntries;
 	int				m_nAmmoType;
 
-	// Seagull perching
-	float			m_flPlayerExitedTime;	// Time at which the player last left this vehicle
-	float			m_flLastSawPlayerAt;	// Time at which we last saw the player
-	EHANDLE			m_hLastPlayerInVehicle;
-	bool			m_bHasPoop;
-
 	CNetworkVar( bool, m_bHeadlightIsOn );
 };
 
@@ -265,11 +261,6 @@ BEGIN_DATADESC( CPropJeep )
 
 	DEFINE_FIELD( m_iNumberOfEntries, FIELD_INTEGER ),
 	DEFINE_FIELD( m_nAmmoType, FIELD_INTEGER ),
-
-	DEFINE_FIELD( m_flPlayerExitedTime, FIELD_TIME ),
-	DEFINE_FIELD( m_flLastSawPlayerAt, FIELD_TIME ),
-	DEFINE_FIELD( m_hLastPlayerInVehicle, FIELD_EHANDLE ),
-	DEFINE_FIELD( m_bHasPoop, FIELD_BOOLEAN ),
 
 	DEFINE_INPUTFUNC( FIELD_VOID, "StartRemoveTauCannon", InputStartRemoveTauCannon ),
 	DEFINE_INPUTFUNC( FIELD_VOID, "FinishRemoveTauCannon", InputFinishRemoveTauCannon ),
@@ -319,8 +310,6 @@ void CPropJeep::CreateServerVehicle( void )
 //-----------------------------------------------------------------------------
 void CPropJeep::Precache( void )
 {
-	UTIL_PrecacheOther( "npc_seagull" );
-
 	PrecacheScriptSound( "PropJeep.AmmoClose" );
 	PrecacheScriptSound( "PropJeep.FireCannon" );
 	PrecacheScriptSound( "PropJeep.FireChargedCannon" );
@@ -685,11 +674,7 @@ bool CPropJeep::CheckWater( void )
 	m_WaterData.m_bBodyInWater = ( UTIL_PointContents( vecEnginePoint ) & MASK_WATER ) ? true : false;
 	if ( m_WaterData.m_bBodyInWater )
 	{
-		if ( m_bHasPoop )
-		{
-			RemoveAllDecals();
-			m_bHasPoop = false;
-		}
+		RemoveAllDecals();
 
 		if ( !m_VehiclePhysics.IsEngineDisabled() )
 		{
@@ -1229,6 +1214,10 @@ void CPropJeep::Use( CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE use
 	if ( pPlayer == NULL)
 		return;
 
+	CSDKPlayer *pSDKPlayer = ToSDKPlayer( pActivator );
+	if ( pSDKPlayer == NULL)
+		return;
+
 	// Find out if the player's looking at our ammocrate hitbox 
 	Vector vecForward;
 	pPlayer->EyeVectors( &vecForward, NULL, NULL );
@@ -1239,9 +1228,12 @@ void CPropJeep::Use( CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE use
 	
 	if ( tr.m_pEnt == this && tr.hitgroup == JEEP_AMMOCRATE_HITGROUP )
 	{
-		// Player's using the crate.
-		// Fill up his SMG ammo.
-		pPlayer->GiveAmmo( 300, "SMG1");
+		CWeaponSDKBase *pWeapon = pSDKPlayer->GetActiveSDKWeapon();
+		if ( pWeapon )
+		{
+			// Player's using the crate.
+			pSDKPlayer->GiveAmmo( 300, pWeapon->m_iPrimaryAmmoType );
+		}
 		
 		if ( ( GetSequence() != LookupSequence( "ammo_open" ) ) && ( GetSequence() != LookupSequence( "ammo_close" ) ) )
 		{
@@ -1538,9 +1530,6 @@ void CPropJeep::EnterVehicle( CBasePlayer *pPlayer )
 
 	CheckWater();
 	BaseClass::EnterVehicle( pPlayer );
-
-	// Start looking for seagulls to land
-	m_hLastPlayerInVehicle = m_hPlayer;
 }
 
 //-----------------------------------------------------------------------------
@@ -1555,10 +1544,6 @@ void CPropJeep::ExitVehicle( int nRole )
 	//If the player has exited, stop charging
 	StopChargeSound();
 	m_bCannonCharging = false;
-
-	// Remember when we last saw the player
-	m_flPlayerExitedTime = gpGlobals->curtime;
-	m_flLastSawPlayerAt = gpGlobals->curtime;
 }
 
 //-----------------------------------------------------------------------------
@@ -1628,32 +1613,5 @@ int CJeepFourWheelServerVehicle::GetExitAnimToUse( Vector &vecEyeExitEndpoint, b
 		m_bParsedAnimations = true;
 	}
 
-	/*
-	CBaseAnimating *pAnimating = dynamic_cast<CBaseAnimating *>(m_pVehicle);
-	// If we don't have the gun anymore, we want to get out using the "gun-less" animation
-	if ( pAnimating )
-	{
-		// HACK: We know the tau-cannon removed exit anim uses the first upright anim's exit details
-		trace_t tr;
-
-		// Convert our offset points to worldspace ones
-		Vector vehicleExitOrigin = m_ExitAnimations[0].vecExitPointLocal;
-		QAngle vehicleExitAngles = m_ExitAnimations[0].vecExitAnglesLocal;
-		UTIL_ParentToWorldSpace( pAnimating, vehicleExitOrigin, vehicleExitAngles );
-
-		// Ensure the endpoint is clear by dropping a point down from above
-		vehicleExitOrigin -= VEC_VIEW;
-		Vector vecMove = Vector(0,0,64);
-		Vector vecStart = vehicleExitOrigin + vecMove;
-		Vector vecEnd = vehicleExitOrigin - vecMove;
-  		UTIL_TraceHull( vecStart, vecEnd, VEC_HULL_MIN, VEC_HULL_MAX, MASK_SOLID, NULL, COLLISION_GROUP_NONE, &tr );
-
-		Assert( !tr.startsolid && tr.fraction < 1.0 );
-		m_vecCurrentExitEndPoint = vecStart + ((vecEnd - vecStart) * tr.fraction);
-		vecEyeExitEndpoint = m_vecCurrentExitEndPoint + VEC_VIEW;
-		m_iCurrentExitAnim = 0;
-		return pAnimating->LookupSequence( "exit_tauremoved" );
-	}
-*/
 	return BaseClass::GetExitAnimToUse( vecEyeExitEndpoint, bAllPointsBlocked );
 }

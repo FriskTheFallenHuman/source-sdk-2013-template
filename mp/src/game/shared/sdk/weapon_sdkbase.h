@@ -26,15 +26,16 @@ public:
 	DECLARE_CLASS( CWeaponSDKBase, CBaseCombatWeapon );
 	DECLARE_NETWORKCLASS(); 
 	DECLARE_PREDICTABLE();
- 
+#ifdef GAME_DLL
+	DECLARE_DATADESC();
+#endif
+
 	CWeaponSDKBase();
- 
-	#ifdef GAME_DLL
-		DECLARE_DATADESC();
-	#endif
-	#ifdef CLIENT_DLL
-       virtual bool ShouldPredict();
-	#endif
+
+ #ifdef CLIENT_DLL
+	virtual bool ShouldPredict();
+#endif
+
 	// All predicted weapons need to implement and return true
 	virtual bool	IsPredicted() const { return true; }
 	virtual SDKWeaponID GetWeaponID( void ) const { return WEAPON_NONE; }
@@ -55,13 +56,16 @@ public:
 	virtual Activity	GetDeployActivity( void ) { return ACT_VM_DRAW; }
 	virtual Activity	GetReloadActivity( void ) { return ACT_VM_RELOAD; }
 	virtual Activity	GetHolsterActivity( void ) { return ACT_VM_HOLSTER; }
- 
-	virtual void			WeaponIdle( void );
-	virtual bool			Reload( void );
-	virtual bool			Deploy();
-	virtual bool			Holster( CBaseCombatWeapon *pSwitchingTo );
-	virtual void			SendReloadEvents();
- 
+
+	virtual void	WeaponIdle( void );
+	virtual bool	Reload( void );
+	virtual bool	Deploy();
+	virtual bool	Holster( CBaseCombatWeapon *pSwitchingTo );
+	virtual void	SendReloadEvents();
+
+	virtual void	AddViewmodelBob( CBaseViewModel *viewmodel, Vector &origin, QAngle &angles );
+	virtual	float	CalcViewmodelBob( void );
+
 	//Tony; added so we can have base functionality without implementing it into every weapon.
 	virtual void ItemPostFrame();
 	virtual void PrimaryAttack();
@@ -80,20 +84,15 @@ public:
 	//weapons with more, ie: a 5 round burst, can override and determine which firemode it's in.
 	virtual int MaxBurstShots() const { return 2; }
  
-	float GetWeaponFOV()
-	{
-		return GetSDKWpnData().m_flWeaponFOV;
-	}
+	float GetWeaponFOV() { return GetSDKWpnData().m_flWeaponFOV; }
+
 #ifdef GAME_DLL
 	void SetDieThink( bool bDie );
 	void Die( void );
-	void SetWeaponModelIndex( const char *pName )
-	{
- 		 m_iWorldModelIndex = modelinfo->GetModelIndex( pName );
-	}
+	void SetWeaponModelIndex( const char *pName ) { m_iWorldModelIndex = modelinfo->GetModelIndex( pName ); }
 #endif
  
-	virtual bool CanWeaponBeDropped() const {	return true; }
+	virtual bool CanWeaponBeDropped() const { return true; }
 private:
  
 	CNetworkVar(float, m_flDecreaseShotsFired);
