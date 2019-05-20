@@ -2,7 +2,7 @@ versioninfo
 {
 	"editorversion" "400"
 	"editorbuild" "8163"
-	"mapversion" "288"
+	"mapversion" "289"
 	"formatversion" "100"
 	"prefab" "0"
 }
@@ -32,7 +32,7 @@ viewsettings
 world
 {
 	"id" "0"
-	"mapversion" "288"
+	"mapversion" "289"
 	"classname" "worldspawn"
 	"detailmaterial" "detail/detailsprites"
 	"detailvbsp" "detail.vbsp"
@@ -10539,7 +10539,7 @@ world
 		side
 		{
 			"id" "60848"
-			"plane" "(2541 6970 -2496) (2541 11066 -2496) (6637 11066 -2496)"
+			"plane" "(2541 6970 -2465) (2541 11066 -2465) (6637 11066 -2465)"
 			"material" "NATURE/SEWER_WATER001"
 			"uaxis" "[1 0 0 -28.7813] 0.25"
 			"vaxis" "[0 -1 0 238.348] 0.25"
@@ -10561,7 +10561,7 @@ world
 		side
 		{
 			"id" "60846"
-			"plane" "(2541 6970 -2506) (2541 11066 -2506) (2541 11066 -2496)"
+			"plane" "(2541 6970 -2506) (2541 11066 -2506) (2541 11066 -2465)"
 			"material" "TOOLS/TOOLSNODRAW"
 			"uaxis" "[0 1 0 -46.3477] 0.25"
 			"vaxis" "[0 0 -1 -8] 0.25"
@@ -10572,7 +10572,7 @@ world
 		side
 		{
 			"id" "60845"
-			"plane" "(6637 11066 -2506) (6637 6970 -2506) (6637 6970 -2496)"
+			"plane" "(6637 11066 -2506) (6637 6970 -2506) (6637 6970 -2465)"
 			"material" "TOOLS/TOOLSNODRAW"
 			"uaxis" "[0 1 0 -46.3477] 0.25"
 			"vaxis" "[0 0 -1 -8] 0.25"
@@ -10583,7 +10583,7 @@ world
 		side
 		{
 			"id" "60844"
-			"plane" "(2541 11066 -2506) (6637 11066 -2506) (6637 11066 -2496)"
+			"plane" "(2541 11066 -2506) (6637 11066 -2506) (6637 11066 -2465)"
 			"material" "TOOLS/TOOLSNODRAW"
 			"uaxis" "[1 0 0 -28.7822] 0.25"
 			"vaxis" "[0 0 -1 -8] 0.25"
@@ -10594,7 +10594,7 @@ world
 		side
 		{
 			"id" "60843"
-			"plane" "(6637 6970 -2506) (2541 6970 -2506) (2541 6970 -2496)"
+			"plane" "(6637 6970 -2506) (2541 6970 -2506) (2541 6970 -2465)"
 			"material" "TOOLS/TOOLSNODRAW"
 			"uaxis" "[1 0 0 -28.7822] 0.25"
 			"vaxis" "[0 0 -1 -8] 0.25"
@@ -19124,8 +19124,8 @@ cameras
 	"activecamera" "0"
 	camera
 	{
-		"position" "[6338.05 5199.81 338.635]"
-		"look" "[6288.82 5215.76 333.561]"
+		"position" "[3991.61 8750.27 -2214.92]"
+		"look" "[3966.07 8705.22 -2219.64]"
 	}
 }
 cordon
