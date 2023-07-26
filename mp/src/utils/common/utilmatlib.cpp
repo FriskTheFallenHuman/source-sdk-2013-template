@@ -1,6 +1,6 @@
 //========= Copyright Valve Corporation, All rights reserved. ============//
 //
-// Purpose: 
+// Purpose:
 //
 // $Workfile:     $
 // $Date:         $
@@ -15,19 +15,224 @@
 #include <cmdlib.h>
 #include "utilmatlib.h"
 #include "tier0/dbg.h"
-#include <windows.h>
+//#include <windows.h>
 #include "filesystem.h"
 #include "materialsystem/materialsystem_config.h"
-#include "mathlib/Mathlib.h"
+#include "mathlib/mathlib.h"
+
+#ifdef _POSIX
+
+#include <appframework/ilaunchermgr.h>
+
+static CreateInterfaceFn g_fileSystemFactory;
+
+class FakeLauncherMgr : public ILauncherMgr
+{
+public:
+	virtual bool Connect( CreateInterfaceFn factory )
+	{
+		return true;
+	}
+
+	virtual void Disconnect()
+	{
+	}
+
+	virtual void* QueryInterface( const char* pInterfaceName )
+	{
+		return NULL;
+	}
+
+	virtual InitReturnVal_t Init()
+	{
+		return ( InitReturnVal_t ) 0;
+	}
+
+	virtual void Shutdown()
+	{
+	}
+
+	virtual bool CreateGameWindow( const char* pTitle, bool bWindowed, int width, int height )
+	{
+		return true;
+	}
+
+	virtual void IncWindowRefCount()
+	{
+	}
+
+	virtual void DecWindowRefCount()
+	{
+	}
+
+	virtual int GetEvents( CCocoaEvent* pEvents, int nMaxEventsToReturn, bool debugEvents = false )
+	{
+		return 0;
+	}
+
+#ifdef LINUX
+	virtual int PeekAndRemoveKeyboardEvents( bool* pbEsc, bool* pbReturn, bool* pbSpace, bool debugEvents = false )
+	{
+		return 0;
+	}
+#endif
+
+	virtual void SetCursorPosition( int x, int y )
+	{
+	}
+
+	virtual void SetWindowFullScreen( bool bFullScreen, int nWidth, int nHeight )
+	{
+	}
+
+	virtual bool IsWindowFullScreen()
+	{
+		return true;
+	}
+
+	virtual void MoveWindow( int x, int y )
+	{
+	}
+
+	virtual void SizeWindow( int width, int tall )
+	{
+	}
+
+	virtual void PumpWindowsMessageLoop()
+	{
+	}
+
+	virtual void DestroyGameWindow()
+	{
+
+	}
+	virtual void SetApplicationIcon( const char* pchAppIconFile )
+	{
+	}
+
+	virtual void GetMouseDelta( int& x, int& y, bool bIgnoreNextMouseDelta = false )
+	{
+	}
+
+	virtual void GetNativeDisplayInfo( int nDisplay, uint& nWidth, uint& nHeight, uint& nRefreshHz )
+	{
+	}
+
+	virtual void RenderedSize( uint& width, uint& height, bool set )
+	{
+	}
+
+	virtual void DisplayedSize( uint& width, uint& height )
+	{
+	}
+
+#if defined( DX_TO_GL_ABSTRACTION )
+	virtual PseudoGLContextPtr	GetMainContext()
+	{
+		return NULL;
+	}
+
+	virtual PseudoGLContextPtr GetGLContextForWindow( void* windowref )
+	{
+		return NULL;
+	}
+
+	virtual PseudoGLContextPtr CreateExtraContext()
+	{
+		return NULL;
+	}
+
+	virtual void DeleteContext( PseudoGLContextPtr hContext )
+	{
+	}
+
+	virtual bool MakeContextCurrent( PseudoGLContextPtr hContext )
+	{
+		return true;
+	}
+
+	virtual GLMDisplayDB* GetDisplayDB( void )
+	{
+		return NULL;
+	}
+
+	virtual void GetDesiredPixelFormatAttribsAndRendererInfo( uint** ptrOut, uint* countOut, GLMRendererInfoFields* rendInfoOut )
+	{
+	}
+
+	virtual void ShowPixels( CShowPixelsParams* params )
+	{
+	}
+#endif
+
+	virtual void GetStackCrawl( CStackCrawlParams* params )
+	{
+	}
+
+	virtual void WaitUntilUserInput( int msSleepTime )
+	{
+	}
+
+	virtual void* GetWindowRef()
+	{
+		return NULL;
+	}
+
+	virtual void SetMouseVisible( bool bState )
+	{
+	}
+
+	virtual void SetMouseCursor( SDL_Cursor* hCursor )
+	{
+	}
+
+	virtual void SetForbidMouseGrab( bool bForbidMouseGrab )
+	{
+	}
+
+	virtual void OnFrameRendered()
+	{
+	}
+
+	virtual void SetGammaRamp( const uint16* pRed, const uint16* pGreen, const uint16* pBlue )
+	{
+	}
+
+	virtual double GetPrevGLSwapWindowTime()
+	{
+		return 0.0;
+	}
+
+} g_FakeLauncherMgr;
+
+void* SDLMgrFactoryRedirector( const char* pName, int* pReturnCode )
+{
+	return !strcmp( "SDLMgrInterface001", pName ) ?
+		   &g_FakeLauncherMgr :
+		   g_fileSystemFactory( pName, pReturnCode );
+}
+
+#endif
 
 void LoadMaterialSystemInterface( CreateInterfaceFn fileSystemFactory )
 {
 	if( g_pMaterialSystem )
+	{
 		return;
-	
+	}
+
+#ifdef _POSIX
+	g_fileSystemFactory = fileSystemFactory;
+	fileSystemFactory = SDLMgrFactoryRedirector;
+#endif
+
 	// materialsystem.dll should be in the path, it's in bin along with vbsp.
-	const char *pDllName = "materialsystem.dll";
-	CSysModule *materialSystemDLLHInst;
+#ifdef _WIN32
+	const char* pDllName = "materialsystem.dll";
+#else
+	const char* pDllName = "materialsystem.so";
+#endif
+	CSysModule* materialSystemDLLHInst;
 	materialSystemDLLHInst = g_pFullFileSystem->LoadModule( pDllName );
 	if( !materialSystemDLLHInst )
 	{
@@ -35,10 +240,10 @@ void LoadMaterialSystemInterface( CreateInterfaceFn fileSystemFactory )
 	}
 
 	CreateInterfaceFn clientFactory = Sys_GetFactory( materialSystemDLLHInst );
-	if ( clientFactory )
+	if( clientFactory )
 	{
-		g_pMaterialSystem = (IMaterialSystem *)clientFactory( MATERIAL_SYSTEM_INTERFACE_VERSION, NULL );
-		if ( !g_pMaterialSystem )
+		g_pMaterialSystem = ( IMaterialSystem* )clientFactory( MATERIAL_SYSTEM_INTERFACE_VERSION, NULL );
+		if( !g_pMaterialSystem )
 		{
 			Error( "Could not get the material system interface from materialsystem.dll (" __FILE__ ")" );
 		}
@@ -48,57 +253,68 @@ void LoadMaterialSystemInterface( CreateInterfaceFn fileSystemFactory )
 		Error( "Could not find factory interface in library MaterialSystem.dll" );
 	}
 
-	if (!g_pMaterialSystem->Init( "shaderapiempty.dll", 0, fileSystemFactory ))
+#ifdef _WIN32
+	const char* pShaderAPIEmptyName = "shaderapiempty.dll";
+#else
+	const char* pShaderAPIEmptyName = "shaderapiempty.so";
+#endif
+
+	if( !g_pMaterialSystem->Init( pShaderAPIEmptyName, nullptr, fileSystemFactory ) )
 	{
-		Error( "Could not start the empty shader (shaderapiempty.dll)!" );
+		Error( "Could not start the empty shader (%s)!", pShaderAPIEmptyName );
 	}
 }
 
-void InitMaterialSystem( const char *materialBaseDirPath, CreateInterfaceFn fileSystemFactory )
+void InitMaterialSystem( const char* materialBaseDirPath, CreateInterfaceFn fileSystemFactory )
 {
 	LoadMaterialSystemInterface( fileSystemFactory );
 	MaterialSystem_Config_t config;
 	g_pMaterialSystem->OverrideConfig( config, false );
+#ifdef MAPBASE
+	g_pMaterialSystem->ModInit();
+#endif
 }
 
 void ShutdownMaterialSystem( )
 {
-	if ( g_pMaterialSystem )
+	if( g_pMaterialSystem )
 	{
 		g_pMaterialSystem->Shutdown();
 		g_pMaterialSystem = NULL;
 	}
 }
 
-MaterialSystemMaterial_t FindMaterial( const char *materialName, bool *pFound, bool bComplain )
+MaterialSystemMaterial_t FindMaterial( const char* materialName, bool* pFound, bool bComplain )
 {
-	IMaterial *pMat = g_pMaterialSystem->FindMaterial( materialName, TEXTURE_GROUP_OTHER, bComplain );
+	IMaterial* pMat = g_pMaterialSystem->FindMaterial( materialName, TEXTURE_GROUP_OTHER, bComplain );
 	MaterialSystemMaterial_t matHandle = pMat;
-	
-	if ( pFound )
+
+	if( pFound )
 	{
 		*pFound = true;
-		if ( IsErrorMaterial( pMat ) )
+		if( IsErrorMaterial( pMat ) )
+		{
 			*pFound = false;
+		}
 	}
 
 	return matHandle;
 }
 
-void GetMaterialDimensions( MaterialSystemMaterial_t materialHandle, int *width, int *height )
+void GetMaterialDimensions( MaterialSystemMaterial_t materialHandle, int* width, int* height )
 {
 	PreviewImageRetVal_t retVal;
 	ImageFormat dummyImageFormat;
-	IMaterial *material = ( IMaterial * )materialHandle;
+	IMaterial* material = ( IMaterial* )materialHandle;
 	bool translucent;
 	retVal = material->GetPreviewImageProperties( width, height, &dummyImageFormat, &translucent );
-	if (retVal != MATERIAL_PREVIEW_IMAGE_OK ) 
+	if( retVal != MATERIAL_PREVIEW_IMAGE_OK )
 	{
 #if 0
-		if (retVal == MATERIAL_PREVIEW_IMAGE_BAD ) 
+		if( retVal == MATERIAL_PREVIEW_IMAGE_BAD )
 		{
-			Error( "problem getting preview image for %s", 
-				g_pMaterialSystem->GetMaterialName( materialInfo[matID].materialHandle ) );
+			Error( "problem getting preview image for %s",
+				   g_pMaterialSystem->GetMaterialName( materialInfo[matID].materialHandle ) );
 		}
 #else
 		*width = 128;
@@ -107,10 +323,10 @@ void GetMaterialDimensions( MaterialSystemMaterial_t materialHandle, int *width,
 	}
 }
 
-void GetMaterialReflectivity( MaterialSystemMaterial_t materialHandle, float *reflectivityVect )
+void GetMaterialReflectivity( MaterialSystemMaterial_t materialHandle, float* reflectivityVect )
 {
-	IMaterial *material = ( IMaterial * )materialHandle;
-	const IMaterialVar *reflectivityVar;
+	IMaterial* material = ( IMaterial* )materialHandle;
+	const IMaterialVar* reflectivityVar;
 
 	bool found;
 	reflectivityVar = material->FindVar( "$reflectivity", &found, false );
@@ -128,43 +344,47 @@ void GetMaterialReflectivity( MaterialSystemMaterial_t materialHandle, float *re
 
 int GetMaterialShaderPropertyBool( MaterialSystemMaterial_t materialHandle, int propID )
 {
-	IMaterial *material = ( IMaterial * )materialHandle;
+	IMaterial* material = ( IMaterial* )materialHandle;
 	switch( propID )
 	{
-	case UTILMATLIB_NEEDS_BUMPED_LIGHTMAPS:
-		return material->GetPropertyFlag( MATERIAL_PROPERTY_NEEDS_BUMPED_LIGHTMAPS );
+		case UTILMATLIB_NEEDS_BUMPED_LIGHTMAPS:
+			return material->GetPropertyFlag( MATERIAL_PROPERTY_NEEDS_BUMPED_LIGHTMAPS );
 
-	case UTILMATLIB_NEEDS_LIGHTMAP:
-		return material->GetPropertyFlag( MATERIAL_PROPERTY_NEEDS_LIGHTMAP );
+		case UTILMATLIB_NEEDS_LIGHTMAP:
+			return material->GetPropertyFlag( MATERIAL_PROPERTY_NEEDS_LIGHTMAP );
 
-	default:
-		Assert( 0 );
-		return 0;
+		default:
+			Assert( 0 );
+			return 0;
 	}
 }
 
 int GetMaterialShaderPropertyInt( MaterialSystemMaterial_t materialHandle, int propID )
 {
-	IMaterial *material = ( IMaterial * )materialHandle;
+	IMaterial* material = ( IMaterial* )materialHandle;
 	switch( propID )
 	{
-	case UTILMATLIB_OPACITY:
-		if (material->IsTranslucent())
-			return UTILMATLIB_TRANSLUCENT;
-		if (material->IsAlphaTested())
-			return UTILMATLIB_ALPHATEST;
-		return UTILMATLIB_OPAQUE;
+		case UTILMATLIB_OPACITY:
+			if( material->IsTranslucent() )
+			{
+				return UTILMATLIB_TRANSLUCENT;
+			}
+			if( material->IsAlphaTested() )
+			{
+				return UTILMATLIB_ALPHATEST;
+			}
+			return UTILMATLIB_OPAQUE;
 
-	default:
-		Assert( 0 );
-		return 0;
+		default:
+			Assert( 0 );
+			return 0;
 	}
 }
 
-const char *GetMaterialVar( MaterialSystemMaterial_t materialHandle, const char *propertyName )
+const char* GetMaterialVar( MaterialSystemMaterial_t materialHandle, const char* propertyName )
 {
-	IMaterial *material = ( IMaterial * )materialHandle;
-	IMaterialVar *var;
+	IMaterial* material = ( IMaterial* )materialHandle;
+	IMaterialVar* var;
 	bool found;
 	var = material->FindVar( propertyName, &found, false );
 	if( found )
@@ -177,8 +397,8 @@ const char *GetMaterialVar( MaterialSystemMaterial_t materialHandle, const char 
 	}
 }
 
-const char *GetMaterialShaderName( MaterialSystemMaterial_t materialHandle )
+const char* GetMaterialShaderName( MaterialSystemMaterial_t materialHandle )
 {
-	IMaterial *material = ( IMaterial * )materialHandle;
+	IMaterial* material = ( IMaterial* )materialHandle;
 	return material->GetShaderName();
 }

@@ -300,8 +300,8 @@ void CWeaponIFMBaseCamera::ComputeAbsCameraTransform( Vector &vecAbsOrigin, QAng
 
 	float flFOV = m_flFOV;
 
-	float flZNear = view->GetZNear();
-	float flZFar = view->GetZFar();
+	float flZNear = g_pView->GetZNear();
+	float flZFar = g_pView->GetZFar();
 	Vector viewOrigin;
 	QAngle viewAngles;
 	pPlayer->CalcView( viewOrigin, viewAngles, flZNear, flZFar, flFOV );
@@ -332,7 +332,7 @@ void CWeaponIFMBaseCamera::ComputeAbsCameraTransform( Vector &vecAbsOrigin, QAng
 //-----------------------------------------------------------------------------
 void CWeaponIFMBaseCamera::GetOverlayBounds( int &x, int &y, int &w, int &h )
 {
-	const CViewSetup *pViewSetup = view->GetViewSetup();
+	const CViewSetup *pViewSetup = g_pView->GetViewSetup();
 	if ( !m_bFullScreen )
 	{
 		w = pViewSetup->width * INSET_VIEW_FACTOR;
@@ -356,7 +356,7 @@ void CWeaponIFMBaseCamera::GetOverlayBounds( int &x, int &y, int &w, int &h )
 void CWeaponIFMBaseCamera::ViewModelDrawn( CBaseViewModel *pBaseViewModel )
 {
 	// NOTE: This is not recursively called because we do not draw viewmodels in the overlay
-	CViewSetup overlayView = *view->GetViewSetup();
+	CViewSetup overlayView = *g_pView->GetViewSetup();
 
 	m_nScreenWidth = overlayView.width;
 	m_nScreenHeight = overlayView.height;
@@ -371,7 +371,7 @@ void CWeaponIFMBaseCamera::ViewModelDrawn( CBaseViewModel *pBaseViewModel )
 	// give the toolsystem a chance to override the view
 	ToolFramework_SetupEngineView( overlayView.origin, overlayView.angles, overlayView.fov );
 
-	view->QueueOverlayRenderView( overlayView, VIEW_CLEAR_COLOR | VIEW_CLEAR_DEPTH, RENDERVIEW_UNSPECIFIED );
+	g_pView->QueueOverlayRenderView( overlayView, VIEW_CLEAR_COLOR | VIEW_CLEAR_DEPTH, RENDERVIEW_UNSPECIFIED );
 }
 
 
